@@ -13,7 +13,7 @@
 #include <Chassis.h>
 
 uint16_t darkThreshold = 500;
-float speed = 180;
+float speed = 10;
 
 // Declare a chassis object with nominal dimensions
 // TODO: Adjust the parameters: wheel diam, encoder counts, wheel track
@@ -106,22 +106,22 @@ void handleKeyPress(int16_t keyPress)
   }
 }
 
-void handleLineFollowing(float baseEffort)
+// TODO: Add line following handler
+void handleLineFollowing(float baseSpeed)
 {
-  const float Kp = 0.05;
+  const float Kp = 0.1;
 
   int16_t leftADC = analogRead(LEFT_LINE_SENSE);
   int16_t rightADC = analogRead(RIGHT_LINE_SENSE);
   
-  int16_t error = rightADC - leftADC;
+  int16_t error = leftADC - rightADC;
+  float turnEffort = Kp * error;
   
-  float leftEffort = baseEffort + Kp * error;
-  float rightEffort = baseEffort - Kp * error;
-  
-  chassis.setMotorEfforts(leftEffort, rightEffort);
+  chassis.setTwist(baseSpeed, turnEffort);
 }
 
-// //here's a nice opportunity to introduce boolean logic
+// TODO: Add intersection checker
+// Here's a nice opportunity to introduce boolean logic
 bool checkIntersectionEvent(int16_t darkThreshold)
 {
   static bool prevIntersection = false;
@@ -138,6 +138,7 @@ bool checkIntersectionEvent(int16_t darkThreshold)
   return retVal;
 }
 
+// TODO: handle intersection
 void handleIntersection(void)
 {
   Serial.println("Intersection!");

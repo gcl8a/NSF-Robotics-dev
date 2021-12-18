@@ -11,18 +11,26 @@
 #include <ir_codes.h>
 
 #include <Chassis.h>
-#include <servo32u4.h>
+
+// TODO: Include Servo32u4 library
+#include <Servo32u4.h>
+
+// TODO: Include rangefinder library
+#include <Rangefinder.h>
 
 uint16_t darkThreshold = 500;
-float speed = 180;
+float speed = 10;
 
 // Declare a chassis object with nominal dimensions
 // TODO: Adjust the parameters: wheel diam, encoder counts, wheel track
 Chassis chassis(7.0, 1440, 14.9);
 
-// Declare a servo object
+// TODO: Declare a servo object
 // Due to library constraints, servo MUST be connected to pin 5
 Servo32U4 servo;
+
+// TODO: Declare rangefinder object
+Rangefinder rangefinder(11, 4);
 
 // Setup the IR receiver/decoder object
 const uint8_t IR_DETECTOR_PIN = 1;
@@ -36,8 +44,8 @@ void setLED(bool value)
   digitalWrite(LED_PIN, value);
 }
 
-// Define the robot states
-enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING};
+// TODO: Add bagging state
+enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING};
 ROBOT_STATE robotState = ROBOT_IDLE;
 
 // A helper function to stop the motors
@@ -77,6 +85,52 @@ void handleMotionComplete(void)
   idle();
 }
 
+void beginLineFollowing(void)
+{
+  setLED(HIGH);
+  robotState = ROBOT_LINE_FOLLOWING;
+}
+
+// TODO: Add function to begin bagging
+void beginBagging(void)
+{
+  robotState = ROBOT_BAGGING;
+  speed = 5;
+}
+
+// TODO: Add function to detect if bag is close enough
+bool checkBagEvent(uint16_t threshold)
+{
+  static uint16_t prevDistance = 99;
+
+  bool retVal = false;
+
+  uint16_t currDistance = rangefinder.getDistance();
+  Serial.println(String("dist: ") + String(currDistance));
+
+  if(prevDistance > threshold && currDistance <= threshold) retVal = true;
+  prevDistance = currDistance;
+
+  return retVal;
+}
+
+// TODO: Add function to pick up bag
+bool pickupBag(void)
+{
+  Serial.print("Bagging...");
+
+  servo.writeMicroseconds(1000);
+
+  chassis.driveFor(8, 2);
+  while(!chassis.checkMotionComplete()) {delay(1);} //blocking
+  Serial.println("done!");
+  servo.writeMicroseconds(2000);
+
+  idle();
+
+  return true;
+}
+
 // Handles a key press on the IR remote
 void handleKeyPress(int16_t keyPress)
 {
@@ -92,6 +146,10 @@ void handleKeyPress(int16_t keyPress)
       else if(keyPress == DOWN_ARROW) drive(-50, 10);
       else if(keyPress == LEFT_ARROW) turn(90, 45);
       else if(keyPress == RIGHT_ARROW) turn(-90, 45);
+      else if(keyPress == SETUP_BTN) beginLineFollowing();
+
+      // TODO: Handle rewind button -> initiate bag pickup
+      else if(keyPress == REWIND) beginBagging();
       break;
       
     case ROBOT_LINE_FOLLOWING:
@@ -105,25 +163,25 @@ void handleKeyPress(int16_t keyPress)
         speed -= 5;
       }
       break;
+
+      
  
      default:
       break;
   }
 }
 
-void handleLineFollowing(float baseEffort)
+void handleLineFollowing(float baseSpeed)
 {
-  const float Kp = 0.05;
+  const float Kp = 0.1;
 
   int16_t leftADC = analogRead(LEFT_LINE_SENSE);
   int16_t rightADC = analogRead(RIGHT_LINE_SENSE);
   
-  int16_t error = rightADC - leftADC;
+  int16_t error = leftADC - rightADC;
+  float turnEffort = Kp * error;
   
-  float leftEffort = baseEffort + Kp * error;
-  float rightEffort = baseEffort - Kp * error;
-  
-  chassis.setMotorEfforts(leftEffort, rightEffort);
+  chassis.setTwist(baseSpeed, turnEffort);
 }
 
 // //here's a nice opportunity to introduce boolean logic
@@ -170,6 +228,13 @@ void setup()
   //these can be undone for the student to adjust
   chassis.setMotorPIDcoeffs(5, 0.5);
 
+  // OPT: move servo to intermediate position
+  servo.attach();
+  servo.writeMicroseconds(1500); //move to neutral position to show it's alive
+
+  // TODO: Initialize rangefinder
+  rangefinder.init();
+
   // initialize the IR decoder
   decoder.init();
 
@@ -199,6 +264,12 @@ void loop()
     case ROBOT_LINE_FOLLOWING:
       handleLineFollowing(speed); //argument is base speed
       if(checkIntersectionEvent(darkThreshold)) handleIntersection();
+      break;
+
+    // TODO: Handle bagging state
+    case ROBOT_BAGGING:
+      handleLineFollowing(speed); //crawl towards bag
+      if(checkBagEvent(8)) {pickupBag();}
       break;
 
     default:

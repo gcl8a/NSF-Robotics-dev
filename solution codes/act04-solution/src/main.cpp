@@ -18,6 +18,12 @@
 // TODO: Include rangefinder library
 #include <Rangefinder.h>
 
+// TODO: Include navigator
+#include "navigator.h"
+
+// TODO: Create navigator
+Navigator navigator;
+
 uint16_t darkThreshold = 500;
 float speed = 10;
 
@@ -207,8 +213,24 @@ void handleIntersection(void)
 
   //drive forward by dead reckoning to center the robot
   chassis.driveFor(8, 5);
+  while(!chassis.checkMotionComplete()) {}//{Serial.println("centering");} 
+  Serial.println("Cleared");
+  int turnDirection = navigator.calculateTurn();
+  Serial.println(turnDirection);
+  switch(turnDirection)
+  {
+    case -1: // Left
+      turn(90, 45);
+      break;
+    case  1: // Right
+      turn(-90, 45);
+      break;
+    default:
+      break;
+  }
 
-  robotState = ROBOT_DRIVE_FOR;
+  while(!chassis.checkMotionComplete()) {}
+  beginLineFollowing();
 }
 
 /*

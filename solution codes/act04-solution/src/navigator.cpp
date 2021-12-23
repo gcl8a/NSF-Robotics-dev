@@ -12,30 +12,28 @@ int Navigator::calculateTurn(void)
             if(currDest == START) 
             {
                 currLocation = ROAD_A;
-                return -1;
+                return TURN_LEFT;
             }
 
             else if(currDest == HOUSE_A) 
             {
                 currLocation = ROAD_A;
-                return -1;
+                return TURN_LEFT;
             }
 
-            else if(currDest == HOUSE_B) return 0;
-            else if(currDest == HOUSE_C) return 1;
             break;
 
         case ROAD_A:
             if(currDest == START) 
             {
                 currLocation = ROAD_MAIN;
-                return 1;
+                return TURN_RIGHT;
             }
 
             break;
 
-        default: return 0;
+        default: return TURN_STRAIGHT;
     }
 
-    return 0;
+    return TURN_STRAIGHT;
 }

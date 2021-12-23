@@ -219,10 +219,10 @@ void handleIntersection(void)
   Serial.println(turnDirection);
   switch(turnDirection)
   {
-    case -1: // Left
+    case TURN_LEFT: // Left
       turn(90, 45);
       break;
-    case  1: // Right
+    case  TURN_RIGHT: // Right
       turn(-90, 45);
       break;
     default:

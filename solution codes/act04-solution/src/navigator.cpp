@@ -1,39 +1,50 @@
+#include <Arduino.h>
 #include "navigator.h"
 
 /**
  * calculateTurn() is called when the robot reaches an intersection. 
  * It returns a value for which way the robot should go.
  * */
-int Navigator::calculateTurn(void)
+Task Navigator::nextAction(void)
 {
+    Serial.print(currLocation);
+    Serial.print('\t');
+    Serial.print(currDest);
+    Serial.print('\t');
+    Serial.print(deliveryDest);
+    Serial.print('\t');
     switch(currLocation)
     {
         case ROAD_MAIN:
-            if(currDest == START) 
+            if(currDest == PICKUP)
             {
-                currLocation = ROAD_A;
-                return TURN_LEFT;
+                currLocation = ROAD_PICKUP;
+                currDest = deliveryDest;
+                return TASK_PICKUP;
             }
 
-            else if(currDest == HOUSE_A) 
+            else
             {
-                currLocation = ROAD_A;
-                return TURN_LEFT;
+                currLocation = ROAD_ABC;
+                return TURN_STRAIGHT;
             }
 
             break;
 
-        case ROAD_A:
-            if(currDest == START) 
-            {
+        case ROAD_PICKUP:
                 currLocation = ROAD_MAIN;
-                return TURN_RIGHT;
-            }
+                return TURN_STRAIGHT;
 
             break;
 
-        default: return TURN_STRAIGHT;
+        case ROAD_ABC:
+                currLocation = ROAD_A;
+                return TURN_LEFT;
+
+            break;
+
+        default: return TASK_IDLE;
     }
 
-    return TURN_STRAIGHT;
+    return TASK_IDLE;
 }

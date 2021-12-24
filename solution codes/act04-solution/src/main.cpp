@@ -54,6 +54,8 @@ void setLED(bool value)
 enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING};
 ROBOT_STATE robotState = ROBOT_IDLE;
 
+void handleTaskComplete(void);
+
 // A helper function to stop the motors
 void idle(void)
 {
@@ -121,7 +123,7 @@ bool checkBagEvent(uint16_t threshold)
 }
 
 // TODO: Add function to pick up bag
-bool pickupBag(void)
+void pickupBag(void)
 {
   Serial.print("Bagging...");
 
@@ -132,9 +134,10 @@ bool pickupBag(void)
   Serial.println("done!");
   servo.writeMicroseconds(2000);
 
-  idle();
+  turn(180, 45); //do a u-turn
 
-  return true;
+  robotState = ROBOT_DRIVE_FOR;
+  //handleTaskComplete();
 }
 
 // Handles a key press on the IR remote
@@ -154,6 +157,13 @@ void handleKeyPress(int16_t keyPress)
       else if(keyPress == RIGHT_ARROW) turn(-90, 45);
       else if(keyPress == SETUP_BTN) beginLineFollowing();
 
+      // TODO: Handle house 1
+      if(keyPress == NUM_1)
+      {
+        navigator.setDestination(HOUSE_A);
+        beginLineFollowing();
+      }
+
       // TODO: Handle rewind button -> initiate bag pickup
       else if(keyPress == REWIND) beginBagging();
       break;
@@ -169,8 +179,6 @@ void handleKeyPress(int16_t keyPress)
         speed -= 5;
       }
       break;
-
-      
  
      default:
       break;
@@ -207,31 +215,48 @@ bool checkIntersectionEvent(int16_t darkThreshold)
   return retVal;
 }
 
-void handleIntersection(void)
+void handleTaskComplete(void)
 {
-  Serial.println("Intersection!");
+  Task nextTask = navigator.nextAction();
 
-  //drive forward by dead reckoning to center the robot
-  chassis.driveFor(8, 5);
-  while(!chassis.checkMotionComplete()) {}//{Serial.println("centering");} 
-  Serial.println("Cleared");
-  int turnDirection = navigator.calculateTurn();
-  Serial.println(turnDirection);
-  switch(turnDirection)
+  Serial.println(nextTask);
+  switch(nextTask)
   {
+    case TASK_IDLE:
+      idle();
+      break;
     case TURN_LEFT: // Left
       turn(90, 45);
       break;
     case  TURN_RIGHT: // Right
       turn(-90, 45);
       break;
+    case  TURN_STRAIGHT: // Right
+      beginLineFollowing();
+      break;
+    case  TURN_UTURN: // Right
+      turn(180, 45);
+      break;
+    case TASK_PICKUP:
+      beginBagging();
     default:
       break;
   }
-
-  while(!chassis.checkMotionComplete()) {}
-  beginLineFollowing();
 }
+
+void handleIntersection(void)
+{
+  Serial.println("Intersection!");
+
+  //drive forward by dead reckoning to center the robot
+  chassis.driveFor(8, 5);
+  while(!chassis.checkMotionComplete()) {}
+  Serial.println("Cleared");
+
+  handleTaskComplete();
+}
+
+
 
 /*
  * This is the standard setup function that is called when the board is rebooted
@@ -280,7 +305,7 @@ void loop()
   switch(robotState)
   {
     case ROBOT_DRIVE_FOR: 
-       if(chassis.checkMotionComplete()) handleMotionComplete(); 
+       if(chassis.checkMotionComplete()) handleTaskComplete(); 
        break;
 
     case ROBOT_LINE_FOLLOWING:

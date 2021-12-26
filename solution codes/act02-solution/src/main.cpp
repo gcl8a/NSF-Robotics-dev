@@ -169,6 +169,10 @@ void setup()
   // initialize the IR decoder
   decoder.init();
 
+  // Ensure the line sesnors are inputs
+  pinMode(LEFT_LINE_SENSE, INPUT);
+  pinMode(RIGHT_LINE_SENSE, INPUT);
+
   Serial.println("/setup()");
 }
 
@@ -178,9 +182,6 @@ void setup()
  */
 void loop()
 {
-  // Call chassis.loop() to update the chassis, motors, etc.
-  chassis.loop();
-
   // Check for a key press on the remote
   int16_t keyPress = decoder.getKeyCode();
   if(keyPress >= 0) handleKeyPress(keyPress);

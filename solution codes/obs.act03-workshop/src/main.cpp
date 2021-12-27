@@ -1,7 +1,7 @@
 /*
  * Activity 03 -- The heavy lifting
  *
- * Picking up a bag using the "drive and look" method
+ * Detect and pick up a bag
  */ 
 
 #include <Arduino.h>
@@ -12,20 +12,24 @@
 
 #include <Chassis.h>
 
+// TODO: Include Servo32u4 library
 #include <Servo32u4.h>
+
+// TODO: Include rangefinder library
 #include <Rangefinder.h>
 
 uint16_t darkThreshold = 500;
 float speed = 10;
 
 // Declare a chassis object with nominal dimensions
-// TODO: You may need to adjust these to match the parameters in earlier activities
+// TODO: Adjust the parameters: wheel diam, encoder counts, wheel track
 Chassis chassis(7.0, 1440, 14.9);
 
+// TODO: Declare a servo object
 // Due to library constraints, servo MUST be connected to pin 5
 Servo32U4 servo;
 
-// Declare rangefinder object
+// TODO: Declare rangefinder object
 Rangefinder rangefinder(11, 4);
 
 // Setup the IR receiver/decoder object
@@ -40,8 +44,8 @@ void setLED(bool value)
   digitalWrite(LED_PIN, value);
 }
 
-// TODO, Section 6.2: Add bagging state
-enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING};
+// TODO: Add bagging state
+enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING};
 ROBOT_STATE robotState = ROBOT_IDLE;
 
 // A helper function to stop the motors
@@ -94,26 +98,37 @@ void beginBagging(void)
   speed = 5;
 }
 
-// TODO, Section 6.2: Add function to detect if bag is close enough
-bool checkForBag(uint16_t threshold)
+// TODO: Add function to detect if bag is close enough
+bool checkBagEvent(uint16_t threshold)
 {
   static uint16_t prevDistance = 99;
 
   bool retVal = false;
 
-  // Add event logic here
+  uint16_t currDistance = rangefinder.getDistance();
+  Serial.println(String("dist: ") + String(currDistance));
+
+  if(prevDistance > threshold && currDistance <= threshold) retVal = true;
+  prevDistance = currDistance;
 
   return retVal;
 }
 
-// TODO, Section 6.2: Add function to pick up bag
-void pickupBag(void)
+// TODO: Add function to pick up bag
+bool pickupBag(void)
 {
   Serial.print("Bagging...");
 
-  // Put servo control here
+  servo.writeMicroseconds(1000);
 
-  // Don't forget to call idle()!
+  chassis.driveFor(8, 2);
+  while(!chassis.checkMotionComplete()) {delay(1);} //blocking
+  Serial.println("done!");
+  servo.writeMicroseconds(2000);
+
+  idle();
+
+  return true;
 }
 
 // Handles a key press on the IR remote
@@ -133,8 +148,8 @@ void handleKeyPress(int16_t keyPress)
       else if(keyPress == RIGHT_ARROW) turn(-90, 45);
       else if(keyPress == SETUP_BTN) beginLineFollowing();
 
-      // TODO, Section 6.2: Handle rewind button -> initiate bag pickup
-    
+      // TODO: Handle rewind button -> initiate bag pickup
+      else if(keyPress == REWIND) beginBagging();
       break;
       
     case ROBOT_LINE_FOLLOWING:
@@ -149,6 +164,8 @@ void handleKeyPress(int16_t keyPress)
       }
       break;
 
+      
+ 
      default:
       break;
   }
@@ -211,16 +228,14 @@ void setup()
   //these can be undone for the student to adjust
   chassis.setMotorPIDcoeffs(5, 0.5);
 
-  // Attch the servo to intermediate position
+  // OPT: move servo to intermediate position
   servo.attach();
+  servo.writeMicroseconds(1500); //move to neutral position to show it's alive
 
-  // TODO, Section 6.2: Adjust servo limits
-  // servo.setMinMaxMicroseconds(...);
-
-  // Initialize rangefinder
+  // TODO: Initialize rangefinder
   rangefinder.init();
 
-  // Initialize the IR decoder
+  // initialize the IR decoder
   decoder.init();
 
   Serial.println("/setup()");
@@ -248,11 +263,10 @@ void loop()
       if(checkIntersectionEvent(darkThreshold)) handleIntersection();
       break;
 
-    // TODO, Section 6.2: Handle bagging state. You'll need to call handleLineFollowing()
-    // as well as check for the bag to be at the correct distance
-    // case ROBOT_BAGGING:
-
-
+    // TODO: Handle bagging state
+    case ROBOT_BAGGING:
+      handleLineFollowing(speed); //crawl towards bag
+      if(checkBagEvent(8)) {pickupBag();}
       break;
 
     default:

@@ -121,8 +121,8 @@ bool pickupBag(void)
 
   servo.writeMicroseconds(1000);
 
-  chassis.driveFor(8, 2);
-  while(!chassis.checkMotionComplete()) {delay(1);} //blocking
+  //chassis.driveFor(8, 2);
+  //while(!chassis.checkMotionComplete()) {delay(1);} //blocking
   Serial.println("done!");
   servo.writeMicroseconds(2000);
 
@@ -266,7 +266,7 @@ void loop()
     // TODO: Handle bagging state
     case ROBOT_BAGGING:
       handleLineFollowing(speed); //crawl towards bag
-      if(checkBagEvent(8)) {pickupBag();}
+      if(checkBagEvent(1)) {pickupBag();}
       break;
 
     default:

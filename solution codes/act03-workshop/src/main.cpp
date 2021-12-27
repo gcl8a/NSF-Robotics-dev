@@ -1,7 +1,7 @@
 /*
- * Activity 02 -- Staying on track
+ * Activity 03 -- The heavy lifting
  *
- * Line following with speed control. Pauses at an intersection and waits for a turn command.
+ * Detect and pick up a bag
  */ 
 
 #include <Arduino.h>

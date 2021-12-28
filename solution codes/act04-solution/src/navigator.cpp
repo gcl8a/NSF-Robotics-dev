@@ -5,7 +5,7 @@
  * calculateTurn() is called when the robot reaches an intersection. 
  * It returns a value for which way the robot should go.
  * */
-Task Navigator::nextAction(void)
+Action Navigator::nextAction(void)
 {
     Serial.print(currLocation);
     Serial.print('\t');

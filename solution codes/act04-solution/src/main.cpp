@@ -217,10 +217,10 @@ bool checkIntersectionEvent(int16_t darkThreshold)
 
 void handleTaskComplete(void)
 {
-  Task nextTask = navigator.nextAction();
+  Action nextAction = navigator.nextAction();
 
-  Serial.println(nextTask);
-  switch(nextTask)
+  Serial.println(nextAction);
+  switch(nextAction)
   {
     case TASK_IDLE:
       idle();
@@ -294,9 +294,6 @@ void setup()
  */
 void loop()
 {
-  // Call chassis.loop() to update the chassis, motors, etc.
-  chassis.loop();
-
   // Check for a key press on the remote
   int16_t keyPress = decoder.getKeyCode();
   if(keyPress >= 0) handleKeyPress(keyPress);

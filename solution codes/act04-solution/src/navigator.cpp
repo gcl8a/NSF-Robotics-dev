@@ -25,7 +25,7 @@ Action Navigator::nextAction(void)
 
             else
             {
-                currLocation = ROAD_ABC;
+                currLocation = ROAD_START;
                 return TURN_STRAIGHT;
             }
 
@@ -37,9 +37,27 @@ Action Navigator::nextAction(void)
 
             break;
 
+        case ROAD_START:
+                currLocation = ROAD_ABC;
+                return TURN_STRAIGHT;
+
+            break;
+
         case ROAD_ABC:
                 currLocation = ROAD_A;
                 return TURN_LEFT;
+
+            break;
+
+        case ROAD_A:
+                currLocation = ROAD_A_DROP;
+                return TURN_STRAIGHT;
+
+            break;
+
+        case ROAD_A_DROP:
+                currLocation = ROAD_A_DROP;
+                return TASK_IDLE;
 
             break;
 

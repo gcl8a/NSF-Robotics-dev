@@ -114,7 +114,7 @@ bool checkBagEvent(uint16_t threshold)
   bool retVal = false;
 
   uint16_t currDistance = rangefinder.getDistance();
-  Serial.println(String("dist: ") + String(currDistance));
+  // Serial.println(String("dist: ") + String(currDistance));
 
   if(prevDistance > threshold && currDistance <= threshold) retVal = true;
   prevDistance = currDistance;
@@ -228,13 +228,13 @@ void handleTaskComplete(void)
     case TURN_LEFT: // Left
       turn(90, 45);
       break;
-    case  TURN_RIGHT: // Right
+    case TURN_RIGHT: // Right
       turn(-90, 45);
       break;
-    case  TURN_STRAIGHT: // Right
+    case TURN_STRAIGHT: // Right
       beginLineFollowing();
       break;
-    case  TURN_UTURN: // Right
+    case TURN_UTURN: // Right
       turn(180, 45);
       break;
     case TASK_PICKUP:

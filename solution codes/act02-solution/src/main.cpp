@@ -66,6 +66,13 @@ void turn(float ang, float speed)
   robotState = ROBOT_DRIVE_FOR;
 }
 
+void beginLineFollowing(void)
+{
+  Serial.println("beginLineFollowing()");
+  setLED(HIGH);
+  robotState = ROBOT_LINE_FOLLOWING;
+}
+
 // Used to check if the motions above are complete
 void handleMotionComplete(void)
 {
@@ -87,6 +94,7 @@ void handleKeyPress(int16_t keyPress)
       else if(keyPress == DOWN_ARROW) drive(-50, 10);
       else if(keyPress == LEFT_ARROW) turn(90, 45);
       else if(keyPress == RIGHT_ARROW) turn(-90, 45);
+      else if(keyPress == SETUP_BTN) beginLineFollowing();
       break;
       
     case ROBOT_LINE_FOLLOWING:

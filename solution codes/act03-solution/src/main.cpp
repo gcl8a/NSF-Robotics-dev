@@ -228,11 +228,10 @@ void setup()
   //these can be undone for the student to adjust
   chassis.setMotorPIDcoeffs(5, 0.5);
 
-  // OPT: move servo to intermediate position
+  // Setup the servo 
   servo.attach();
-  servo.writeMicroseconds(1500); //move to neutral position to show it's alive
 
-  // TODO: Initialize rangefinder
+  // Initialize rangefinder
   rangefinder.init();
 
   // initialize the IR decoder

@@ -51,7 +51,7 @@ void setLED(bool value)
 }
 
 // TODO: Add bagging state
-enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING};
+enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING, ROBOT_DROPPING};
 ROBOT_STATE robotState = ROBOT_IDLE;
 
 void handleTaskComplete(void);
@@ -139,15 +139,51 @@ void pickupBag(void)
   turn(180, 45); //do a u-turn
 }
 
+// TODO: Add function to begin bagging
+void driveToDrop(void)
+{
+  robotState = ROBOT_DROPPING;
+  speed = 5;
+}
+
+// TODO: Add function to detect if platform is close enough
+bool checkForPlatform(uint16_t threshold)
+{
+  static uint16_t prevDistance = 99;
+
+  bool retVal = false;
+
+  uint16_t currDistance = rangefinder.getDistance();
+  // Serial.println(String("dist: ") + String(currDistance));
+
+  if(prevDistance > threshold && currDistance <= threshold) retVal = true;
+  prevDistance = currDistance;
+
+  return retVal;
+}
+
+#define SERVO_0 1000
+#define SERVO_4 1300
+#define SERVO_8 1600
+
 // TODO: Add function to drop off bag
-void dropoffBag(void)
+void dropoffBag(int height)
 {
   Serial.print("Dropping...");
 
-  servo.writeMicroseconds(1000);
+  if(height == SERVO_4)
+  {
+    chassis.driveFor(8, 2);
+    while(!chassis.checkMotionComplete()) {delay(1);} //blocking
+    Serial.println("done!");
+  } 
+
+  servo.writeMicroseconds(height);
 
   navigator.handleDropoff();
 
+  drive(-2, 10);
+  while(!chassis.checkMotionComplete()) {}
   turn(180, 45); //do a u-turn
 }
 
@@ -172,6 +208,13 @@ void handleKeyPress(int16_t keyPress)
       if(keyPress == NUM_1)
       {
         navigator.setDestination(HOUSE_A);
+        beginLineFollowing();
+      }
+
+      // TODO: Handle house 2
+      if(keyPress == NUM_2)
+      {
+        navigator.setDestination(HOUSE_B);
         beginLineFollowing();
       }
 
@@ -257,8 +300,12 @@ void handleTaskComplete(void)
     case TASK_PICKUP:
       beginBagging();
       break;
-    case TASK_DROPOFF:
-      dropoffBag();
+    case TASK_DROPOFF0:
+      dropoffBag(SERVO_0);
+      break;
+    case TASK_DROPOFF4:
+    case TASK_DROPOFF8:
+      dropoffBag(SERVO_4);
       break;
     default:
       break;
@@ -300,8 +347,12 @@ void handleIntersection(void)
     case TASK_PICKUP:
       beginBagging();
       break;
-    case TASK_DROPOFF:
-      dropoffBag();
+    case TASK_DROPOFF0:
+      dropoffBag(SERVO_0);
+      break;
+    case TASK_DROPOFF4:
+    case TASK_DROPOFF8:
+      driveToDrop();
       break;
     default:
       break;
@@ -365,6 +416,12 @@ void loop()
     case ROBOT_BAGGING:
       handleLineFollowing(speed); //crawl towards bag
       if(checkBagEvent(8)) {pickupBag();}
+      break;
+
+    // TODO: Handle bagging state
+    case ROBOT_DROPPING:
+      handleLineFollowing(speed); //crawl towards bag
+      if(checkForPlatform(8)) {dropoffBag(SERVO_4);}
       break;
 
     default:

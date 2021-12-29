@@ -40,7 +40,7 @@ Action Navigator::handleIntersection(void)
             break;
 
         case ROAD_START:
-            if(currDest == HOUSE_A)
+            if(currDest == HOUSE_A || currDest == HOUSE_B)
             {
                 currLocation = ROAD_ABC;
                 return TURN_STRAIGHT;
@@ -61,6 +61,11 @@ Action Navigator::handleIntersection(void)
                 currLocation = ROAD_A;
                 return TURN_LEFT;
             }
+            else if(currDest == HOUSE_B)
+            {
+                currLocation = ROAD_B;
+                return TASK_DROPOFF4;
+            }
             else if(currDest == START)
             {
                 currLocation = ROAD_START;
@@ -72,12 +77,20 @@ Action Navigator::handleIntersection(void)
         case ROAD_A:
             if(currDest == HOUSE_A)
             {
-                return TASK_DROPOFF;
+                return TASK_DROPOFF0;
             }
             else if(currDest == START)
             {
                 currLocation = ROAD_ABC;
                 return TURN_RIGHT;
+            }
+            break;
+
+        case ROAD_B:
+            if(currDest == START)
+            {
+                currLocation = ROAD_ABC;
+                return TURN_STRAIGHT;
             }
             break;
 

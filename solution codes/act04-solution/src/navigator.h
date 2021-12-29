@@ -12,7 +12,14 @@ class Navigator
     Destination deliveryDest = NONE;
 
 public:
-    Action nextAction(void);
+    //Action nextAction(void);
+    
+    Action handleIntersection(void);
+    Action handleMotionComplete(void);
+
+    Destination handlePickup(void) {return currDest = deliveryDest;}
+    Destination handleDropoff(void) {return currDest = START;}
+
     void setDestination(Destination dest) {currDest = PICKUP; deliveryDest = dest;}
     void setTest(Destination dest)
     {

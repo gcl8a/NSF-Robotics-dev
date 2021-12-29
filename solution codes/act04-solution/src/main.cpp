@@ -132,12 +132,11 @@ void pickupBag(void)
   chassis.driveFor(8, 2);
   while(!chassis.checkMotionComplete()) {delay(1);} //blocking
   Serial.println("done!");
-  servo.writeMicroseconds(2000); 
+  servo.writeMicroseconds(2000);
+
+  navigator.handlePickup();
 
   turn(180, 45); //do a u-turn
-
-  robotState = ROBOT_DRIVE_FOR;
-  //handleTaskComplete();
 }
 
 // TODO: Add function to drop off bag
@@ -147,10 +146,9 @@ void dropoffBag(void)
 
   servo.writeMicroseconds(1000);
 
-  turn(180, 45); //do a u-turn
+  navigator.handleDropoff();
 
-  robotState = ROBOT_DRIVE_FOR;
-  //handleTaskComplete();
+  turn(180, 45); //do a u-turn
 }
 
 // Handles a key press on the IR remote
@@ -236,7 +234,7 @@ bool checkIntersectionEvent(int16_t darkThreshold)
 
 void handleTaskComplete(void)
 {
-  Action nextAction = navigator.nextAction();
+  Action nextAction = navigator.handleMotionComplete();
 
   Serial.println(nextAction);
   switch(nextAction)
@@ -271,14 +269,44 @@ void handleIntersection(void)
 {
   Serial.println("Intersection!");
 
-  //drive forward by dead reckoning to center the robot
+  // Drive forward by dead reckoning to center the robot
   chassis.driveFor(8, 5);
+
+  // We'll block for this one to reduce the complexity
   while(!chassis.checkMotionComplete()) {}
+
   Serial.println("Cleared");
 
-  handleTaskComplete();
-}
+  Action nextAction = navigator.handleIntersection();
 
+  Serial.println(nextAction);
+  switch(nextAction)
+  {
+    case TASK_IDLE:
+      idle();
+      break;
+    case TURN_LEFT: // Left
+      turn(90, 45);
+      break;
+    case TURN_RIGHT: // Right
+      turn(-90, 45);
+      break;
+    case TURN_STRAIGHT: // Right
+      beginLineFollowing();
+      break;
+    case TURN_UTURN: // Right
+      turn(180, 45);
+      break;
+    case TASK_PICKUP:
+      beginBagging();
+      break;
+    case TASK_DROPOFF:
+      dropoffBag();
+      break;
+    default:
+      break;
+  }
+}
 
 
 /*
@@ -325,7 +353,7 @@ void loop()
   switch(robotState)
   {
     case ROBOT_DRIVE_FOR: 
-       if(chassis.checkMotionComplete()) beginLineFollowing(); //handleTaskComplete(); 
+       if(chassis.checkMotionComplete()) handleTaskComplete(); 
        break;
 
     case ROBOT_LINE_FOLLOWING:

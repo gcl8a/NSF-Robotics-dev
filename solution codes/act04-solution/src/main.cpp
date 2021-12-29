@@ -1,7 +1,7 @@
 /*
- * Activity 02 -- Staying on track
+ * Activity 04 -- Where are we headed?
  *
- * Line following with speed control. Pauses at an intersection and waits for a turn command.
+ * Make a delivery using an internal map of the arena.
  */ 
 
 #include <Arduino.h>

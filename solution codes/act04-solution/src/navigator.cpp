@@ -32,32 +32,70 @@ Action Navigator::nextAction(void)
             break;
 
         case ROAD_PICKUP:
+            if(currDest == PICKUP)
+            {
+                Serial.println("Whoa. Should be here. Line 37.");
+                currLocation = ROAD_PICKUP;
+                currDest = deliveryDest;
+                return TURN_STRAIGHT;
+            }
+            else
+            {
                 currLocation = ROAD_MAIN;
                 return TURN_STRAIGHT;
+            }
 
             break;
 
         case ROAD_START:
+            if(currDest == HOUSE_A)
+            {
                 currLocation = ROAD_ABC;
                 return TURN_STRAIGHT;
+            }
+            else if(currDest == START)
+            {
+                currLocation = ROAD_MAIN;
+                currDest = NONE;
+                deliveryDest = NONE;
+                return TASK_IDLE;
+            }
 
             break;
 
         case ROAD_ABC:
+            if(currDest == HOUSE_A)
+            {
                 currLocation = ROAD_A;
                 return TURN_LEFT;
+            }
+            else if(currDest == START)
+            {
+                currLocation = ROAD_START;
+                return TURN_STRAIGHT;
+            }
 
             break;
 
         case ROAD_A:
-                currLocation = ROAD_A_DROP;
-                return TURN_STRAIGHT;
-
+            if(currDest == HOUSE_A)
+            {
+                currLocation = ROAD_A;
+                currDest = START;
+                return TASK_DROPOFF;
+            }
+            else if(currDest == START)
+            {
+                currLocation = ROAD_ABC;
+                return TURN_RIGHT;
+            }
             break;
 
         case ROAD_A_DROP:
-                currLocation = ROAD_A_DROP;
-                return TASK_IDLE;
+                Serial.println("Whoa. Shoulnd't get here. Line 95.");
+                currLocation = ROAD_A;
+                currDest = START;
+                return TURN_STRAIGHT;
 
             break;
 

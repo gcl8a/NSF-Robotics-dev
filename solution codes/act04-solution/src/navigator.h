@@ -14,5 +14,11 @@ class Navigator
 public:
     Action nextAction(void);
     void setDestination(Destination dest) {currDest = PICKUP; deliveryDest = dest;}
+    void setTest(Destination dest)
+    {
+        deliveryDest = dest;
+        currDest = dest;
+        if(dest == HOUSE_A) currLocation = ROAD_A;
+    }
 };
 

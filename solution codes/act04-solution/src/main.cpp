@@ -132,7 +132,20 @@ void pickupBag(void)
   chassis.driveFor(8, 2);
   while(!chassis.checkMotionComplete()) {delay(1);} //blocking
   Serial.println("done!");
-  servo.writeMicroseconds(2000);
+  servo.writeMicroseconds(2000); 
+
+  turn(180, 45); //do a u-turn
+
+  robotState = ROBOT_DRIVE_FOR;
+  //handleTaskComplete();
+}
+
+// TODO: Add function to drop off bag
+void dropoffBag(void)
+{
+  Serial.print("Dropping...");
+
+  servo.writeMicroseconds(1000);
 
   turn(180, 45); //do a u-turn
 
@@ -161,6 +174,12 @@ void handleKeyPress(int16_t keyPress)
       if(keyPress == NUM_1)
       {
         navigator.setDestination(HOUSE_A);
+        beginLineFollowing();
+      }
+
+      if(keyPress == NUM_7)
+      {
+        navigator.setTest(HOUSE_A);
         beginLineFollowing();
       }
 
@@ -239,6 +258,10 @@ void handleTaskComplete(void)
       break;
     case TASK_PICKUP:
       beginBagging();
+      break;
+    case TASK_DROPOFF:
+      dropoffBag();
+      break;
     default:
       break;
   }
@@ -302,7 +325,7 @@ void loop()
   switch(robotState)
   {
     case ROBOT_DRIVE_FOR: 
-       if(chassis.checkMotionComplete()) handleTaskComplete(); 
+       if(chassis.checkMotionComplete()) beginLineFollowing(); //handleTaskComplete(); 
        break;
 
     case ROBOT_LINE_FOLLOWING:

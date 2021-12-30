@@ -19,7 +19,7 @@
 #include <Rangefinder.h>
 
 // TODO: Include navigator
-#include "navigator.h"
+#include "delivery.h"
 
 // TODO: Create delivery object
 Delivery delivery;
@@ -59,7 +59,8 @@ void setLED(bool value)
 enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_TURNING, ROBOT_BAGGING, ROBOT_DROPPING};
 ROBOT_STATE robotState = ROBOT_IDLE;
 
-Action handleIntersection(Delivery& del);
+//Action handleIntersection(Delivery& del);
+void handleIntersection(void);
 
 // A helper function to stop the motors
 void idle(void)
@@ -327,52 +328,52 @@ bool checkIntersectionEvent(int16_t darkThreshold)
   return retVal;
 }
 
-void handleIntersection(void)
-{
-  Serial.println("Intersection!");
+// void handleIntersection(void)
+// {
+//   Serial.println("Intersection!");
 
-  // Drive forward by dead reckoning to center the robot
-  chassis.driveFor(8, 5);
+//   // Drive forward by dead reckoning to center the robot
+//   chassis.driveFor(8, 5);
 
-  // We'll block for this one to reduce the complexity
-  while(!chassis.checkMotionComplete()) {}
+//   // We'll block for this one to reduce the complexity
+//   while(!chassis.checkMotionComplete()) {}
 
-  Serial.println("Cleared");
+//   Serial.println("Cleared");
 
-  Action nextAction = handleIntersection(delivery);
+//   Action nextAction = handleIntersection(delivery);
 
-  Serial.println(nextAction);
-  switch(nextAction)
-  {
-    case TASK_IDLE:
-      idle();
-      break;
-    case TURN_LEFT: // Left
-      turn(90, 45);
-      break;
-    case TURN_RIGHT: // Right
-      turn(-90, 45);
-      break;
-    case TURN_STRAIGHT: // Right
-      beginLineFollowing();
-      break;
-    case TURN_UTURN: // Right
-      turn(180, 45);
-      break;
-    case TASK_PICKUP:
-      beginBagging();
-      break;
-    case TASK_DROPOFF0:
-      dropoffBag(delivery.deliveryDest);
-      break;
-    case TASK_DROPOFF4:
-    case TASK_DROPOFF8:
-      driveToDrop();
-      break;
-    default:
-      break;
-  }
-}
+//   Serial.println(nextAction);
+//   switch(nextAction)
+//   {
+//     case TASK_IDLE:
+//       idle();
+//       break;
+//     case TURN_LEFT: // Left
+//       turn(90, 45);
+//       break;
+//     case TURN_RIGHT: // Right
+//       turn(-90, 45);
+//       break;
+//     case TURN_STRAIGHT: // Right
+//       beginLineFollowing();
+//       break;
+//     case TURN_UTURN: // Right
+//       turn(180, 45);
+//       break;
+//     case TASK_PICKUP:
+//       beginBagging();
+//       break;
+//     case TASK_DROPOFF0:
+//       dropoffBag(delivery.deliveryDest);
+//       break;
+//     case TASK_DROPOFF4:
+//     case TASK_DROPOFF8:
+//       driveToDrop();
+//       break;
+//     default:
+//       break;
+//   }
+// }
 
 
 /*
@@ -455,27 +456,37 @@ void loop()
  * handleIntersection() is called when the robot reaches an intersection. 
  * It returns a value for which way the robot should go.
  * */
-Action handleIntersection(Delivery& del)
+void handleIntersection(void)
 {
+    Serial.println("Intersection!");
+
+    // Drive forward by dead reckoning to center the robot
+    chassis.driveFor(8, 5);
+
+    // We'll block for this one to reduce the complexity
+    while(!chassis.checkMotionComplete()) {}
+
+    Serial.println("Cleared");
+
     Serial.print("intersection: ");
-    Serial.print(del.currLocation);
+    Serial.print(delivery.currLocation);
     Serial.print('\t');
-    Serial.print(del.currDest);
+    Serial.print(delivery.currDest);
     Serial.print('\t');
  
-    switch(del.currLocation)
+    switch(delivery.currLocation)
     {
         case ROAD_MAIN:
-            if(del.currDest == PICKUP)
+            if(delivery.currDest == PICKUP)
             {
-                del.currLocation = ROAD_PICKUP;
-                return TASK_PICKUP;
+                delivery.currLocation = ROAD_PICKUP;
+                beginBagging();
             }
 
             else
             {
-                del.currLocation = ROAD_START;
-                return TURN_STRAIGHT;
+                delivery.currLocation = ROAD_START;
+                beginLineFollowing();
             }
 
             break;
@@ -483,70 +494,70 @@ Action handleIntersection(Delivery& del)
         case ROAD_PICKUP:
             // regardless of destination
             {
-                del.currLocation = ROAD_MAIN;
-                return TURN_STRAIGHT;
+                delivery.currLocation = ROAD_MAIN;
+                beginLineFollowing();
             }
 
             break;
 
         case ROAD_START:
-            if(del.currDest == HOUSE_A || del.currDest == HOUSE_B)
+            if(delivery.currDest == HOUSE_A || delivery.currDest == HOUSE_B)
             {
-                del.currLocation = ROAD_ABC;
-                return TURN_STRAIGHT;
+                delivery.currLocation = ROAD_ABC;
+                beginLineFollowing();
             }
-            else if(del.currDest == START)
+            else if(delivery.currDest == START)
             {
-                del.currLocation = ROAD_MAIN;
-                del.currDest = NONE;
-                del.deliveryDest = NONE;
-                return TASK_IDLE;
+                delivery.currLocation = ROAD_MAIN;
+                delivery.currDest = NONE;
+                delivery.deliveryDest = NONE;
+                idle();
             }
 
             break;
 
         case ROAD_ABC:
-            if(del.currDest == HOUSE_A)
+            if(delivery.currDest == HOUSE_A)
             {
-                del.currLocation = ROAD_A;
-                return TURN_LEFT;
+                delivery.currLocation = ROAD_A;
+                turn(90, 45);
             }
-            else if(del.currDest == HOUSE_B)
+            else if(delivery.currDest == HOUSE_B)
             {
-                del.currLocation = ROAD_B;
-                return TASK_DROPOFF4;
+                delivery.currLocation = ROAD_B;
+                driveToDrop();
             }
-            else if(del.currDest == START)
+            else if(delivery.currDest == START)
             {
-                del.currLocation = ROAD_START;
-                return TURN_STRAIGHT;
+                delivery.currLocation = ROAD_START;
+                beginLineFollowing();
             }
 
             break;
 
         case ROAD_A:
-            if(del.currDest == HOUSE_A)
+            if(delivery.currDest == HOUSE_A)
             {
-                return TASK_DROPOFF0;
+                dropoffBag(delivery.deliveryDest);
             }
-            else if(del.currDest == START)
+            else if(delivery.currDest == START)
             {
-                del.currLocation = ROAD_ABC;
-                return TURN_RIGHT;
+                delivery.currLocation = ROAD_ABC;
+                turn(-90, 45);
             }
             break;
 
         case ROAD_B:
-            if(del.currDest == START)
+            if(delivery.currDest == START)
             {
-                del.currLocation = ROAD_ABC;
-                return TURN_STRAIGHT;
+                delivery.currLocation = ROAD_ABC;
+                beginLineFollowing();
             }
             break;
 
-        default: return TASK_IDLE;
+        default: 
+          Serial.println("Unhandled case!");
+          idle();
     }
-
-    return TASK_IDLE;
 }
 

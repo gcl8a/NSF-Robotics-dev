@@ -39,6 +39,8 @@ Servo32U4 servo;
 #define SERVO_A 1000
 #define SERVO_B 1300
 #define SERVO_C 1600
+#define SERVO_UP 2000
+#define SERVO_DOWN 1000
 
 // TODO: Declare rangefinder object
 Rangefinder rangefinder(11, 4);
@@ -134,12 +136,12 @@ void pickupBag(void)
 {
   Serial.print("Bagging...");
 
-  servo.writeMicroseconds(1000);
+  servo.writeMicroseconds(SERVO_DOWN);
 
   chassis.driveFor(8, 2);
   while(!chassis.checkMotionComplete()) {delay(1);} //blocking
   Serial.println("done!");
-  servo.writeMicroseconds(2000);
+  servo.writeMicroseconds(SERVO_UP);
 
   delivery.currDest = delivery.deliveryDest;
 
@@ -245,7 +247,7 @@ void handleKeyPress(int16_t keyPress)
       else if(keyPress == RIGHT_ARROW) turn(-90, 45);
       else if(keyPress == SETUP_BTN) beginLineFollowing();
 
-      // TODO: Handle house 1
+      // TODO: Handle house A
       if(keyPress == NUM_1)
       {
         delivery.deliveryDest = HOUSE_A;
@@ -253,7 +255,7 @@ void handleKeyPress(int16_t keyPress)
         beginLineFollowing();
       }
 
-      // TODO: Handle house 2
+      // TODO: Handle house B
       if(keyPress == NUM_2)
       {
         delivery.deliveryDest = HOUSE_B;
@@ -261,8 +263,10 @@ void handleKeyPress(int16_t keyPress)
         beginLineFollowing();
       }
 
+      // TODO: Handle house C
+
       // For testing drop-offs
-      if(keyPress == NUM_7)
+      if(keyPress == NUM_7) // Starting on ABC, deliver to A
       {
         delivery.deliveryDest = HOUSE_A;
         delivery.currDest = HOUSE_A;
@@ -270,7 +274,7 @@ void handleKeyPress(int16_t keyPress)
         beginLineFollowing();
       }
 
-      if(keyPress == NUM_8)
+      if(keyPress == NUM_8) // Starting on ABC, deliver to B
       {
         delivery.deliveryDest = HOUSE_B;
         delivery.currDest = HOUSE_B;
@@ -346,9 +350,9 @@ void setup()
   //these can be undone for the student to adjust
   chassis.setMotorPIDcoeffs(5, 0.5);
 
-  // OPT: move servo to intermediate position
+  // Attach the servo
   servo.attach();
-  servo.writeMicroseconds(1500); //move to neutral position to show it's alive
+  servo.writeMicroseconds(SERVO_UP); 
 
   // TODO: Initialize rangefinder
   rangefinder.init();
@@ -387,7 +391,7 @@ void loop()
       if(checkBagEvent(8)) {pickupBag();}
       break;
 
-    // TODO: Handle bagging state
+    // TODO: Handle dropping off state
     case ROBOT_DROPPING:
       handleLineFollowing(speed); //crawl towards bag
       if(checkForPlatform(8)) {dropOffBag(delivery.deliveryDest);}

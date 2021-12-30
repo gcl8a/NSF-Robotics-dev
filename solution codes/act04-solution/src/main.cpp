@@ -404,6 +404,9 @@ void loop()
 
 /**
  * handleIntersection() is called when the robot reaches an intersection. 
+ * We've coded up a map of the arena -- every time we get to an intersection, 
+ * we can decide what we want to do next based on our current location and 
+ * destination. 
  * */
 void handleIntersection(void)
 {

@@ -16,28 +16,3 @@ struct Delivery
     // The current location
     Road currLocation = ROAD_MAIN;
 };
-
-// class Navigator
-// {
-//     // Road currLocation = ROAD_MAIN;
-//     // Destination currDest = NONE;
-//     // Destination deliveryDest = NONE;
-
-// public:
-//     //Action nextAction(void);
-    
-//     //Action handleIntersection(void);
-//     //Action handleMotionComplete(void);
-
-//     //Destination handlePickup(void) {return currDest = deliveryDest;}
-//     //Destination handleDropoff(void) {return currDest = START;}
-
-//     //void setDestination(Destination dest) {currDest = PICKUP; deliveryDest = dest;}
-//     // void setTest(Destination dest)
-//     // {
-//     //     deliveryDest = dest;
-//     //     currDest = dest;
-//     //     if(dest == HOUSE_A) currLocation = ROAD_A;
-//     // }
-// };
-

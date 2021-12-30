@@ -5,7 +5,7 @@
  * handleIntersection() is called when the robot reaches an intersection. 
  * It returns a value for which way the robot should go.
  * */
-Action Navigator::handleIntersection(void)
+/*Action Navigator::handleIntersection(void)
 {
     Serial.print("intersection: ");
     Serial.print(currLocation);
@@ -101,20 +101,58 @@ Action Navigator::handleIntersection(void)
 }
 
 
+*/
+// Action Navigator::handleMotionComplete(void)
+// {
+//     Serial.print("motion complete: ");
+//     Serial.print(currLocation);
+//     Serial.print('\t');
+//     Serial.print(currDest);
+//     Serial.print('\t');
 
-Action Navigator::handleMotionComplete(void)
-{
-    Serial.print("motion complete: ");
-    Serial.print(currLocation);
-    Serial.print('\t');
-    Serial.print(currDest);
-    Serial.print('\t');
+//     switch(currLocation)
+//     {
+//         default: 
+//             return TURN_STRAIGHT;
+//     }
 
-    switch(currLocation)
-    {
-        default: 
-            return TURN_STRAIGHT;
-    }
+//     return TURN_STRAIGHT;
+// }
 
-    return TURN_STRAIGHT;
-}
+
+// void handleTaskComplete(void)
+// {
+//   Action nextAction = navigator.handleMotionComplete();
+
+//   Serial.println(nextAction);
+//   switch(nextAction)
+//   {
+//     case TASK_IDLE:
+//       idle();
+//       break;
+//     case TURN_LEFT: // Left
+//       turn(90, 45);
+//       break;
+//     case TURN_RIGHT: // Right
+//       turn(-90, 45);
+//       break;
+//     case TURN_STRAIGHT: // Right
+//       beginLineFollowing();
+//       break;
+//     case TURN_UTURN: // Right
+//       turn(180, 45);
+//       break;
+//     case TASK_PICKUP:
+//       beginBagging();
+//       break;
+//     case TASK_DROPOFF0:
+//       dropoffBag(SERVO_0);
+//       break;
+//     case TASK_DROPOFF4:
+//     case TASK_DROPOFF8:
+//       dropoffBag(SERVO_4);
+//       break;
+//     default:
+//       break;
+//   }
+// }

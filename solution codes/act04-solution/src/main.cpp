@@ -21,8 +21,8 @@
 // TODO: Include navigator
 #include "navigator.h"
 
-// TODO: Create navigator
-Navigator navigator;
+// TODO: Create delivery object
+Delivery delivery;
 
 uint16_t darkThreshold = 500;
 float speed = 10;
@@ -34,6 +34,11 @@ Chassis chassis(7.0, 1440, 14.9);
 // TODO: Declare a servo object
 // Due to library constraints, servo MUST be connected to pin 5
 Servo32U4 servo;
+
+// TODO: Define the servo positions for each of the platforms
+#define SERVO_A 1000
+#define SERVO_B 1300
+#define SERVO_C 1600
 
 // TODO: Declare rangefinder object
 Rangefinder rangefinder(11, 4);
@@ -51,10 +56,10 @@ void setLED(bool value)
 }
 
 // TODO: Add bagging state
-enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING, ROBOT_DROPPING};
+enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_TURNING, ROBOT_BAGGING, ROBOT_DROPPING};
 ROBOT_STATE robotState = ROBOT_IDLE;
 
-void handleTaskComplete(void);
+Action handleIntersection(Delivery& del);
 
 // A helper function to stop the motors
 void idle(void)
@@ -87,16 +92,16 @@ void turn(float ang, float speed)
   robotState = ROBOT_DRIVE_FOR;
 }
 
-// Used to check if the motions above are complete
-void handleMotionComplete(void)
-{
-  idle();
-}
-
 void beginLineFollowing(void)
 {
   setLED(HIGH);
   robotState = ROBOT_LINE_FOLLOWING;
+}
+
+// Used to check if the motions above are complete
+void handleMotionComplete(void)
+{
+  idle();
 }
 
 // TODO: Add function to begin bagging
@@ -134,12 +139,12 @@ void pickupBag(void)
   Serial.println("done!");
   servo.writeMicroseconds(2000);
 
-  navigator.handlePickup();
+  delivery.currDest = delivery.deliveryDest;
 
   turn(180, 45); //do a u-turn
 }
 
-// TODO: Add function to begin bagging
+// TODO: Add function to start dropping sequence
 void driveToDrop(void)
 {
   robotState = ROBOT_DROPPING;
@@ -162,29 +167,63 @@ bool checkForPlatform(uint16_t threshold)
   return retVal;
 }
 
-#define SERVO_0 1000
-#define SERVO_4 1300
-#define SERVO_8 1600
-
 // TODO: Add function to drop off bag
-void dropoffBag(int height)
+void dropoffBag(Destination dest)
 {
   Serial.print("Dropping...");
 
-  if(height == SERVO_4)
+  /**
+   * House A is at ground level. We do not check for a platform, because the dropoff
+   * is indicated by a line.
+   * */
+  if(dest == HOUSE_A) 
   {
+    // Adjust position
+    Serial.println("Backing up.");
+    chassis.driveFor(-10, 5);
+    while(!chassis.checkMotionComplete()) {delay(1);} // blocking
+
+    // Release the bag
+    Serial.println("Dropping.");
+    servo.writeMicroseconds(SERVO_A);
+    delay(500); //blocking, but we need to make sure servo has moved
+  }
+
+  // For B and C, we need to drive forward a bit
+  else if(dest == HOUSE_B) 
+  {  
+    Serial.println("Crawling forward.");
     chassis.driveFor(8, 2);
     while(!chassis.checkMotionComplete()) {delay(1);} //blocking
-    Serial.println("done!");
-  } 
+    
+    // Release the bag
+    Serial.println("Dropping.");
+    servo.writeMicroseconds(SERVO_B);
+    delay(500); //blocking, but we need to make sure servo has moved
+  }
 
-  servo.writeMicroseconds(height);
+  else if(dest == HOUSE_C) 
+  {
+    Serial.println("Crawling forward.");
+    chassis.driveFor(8, 2);
+    while(!chassis.checkMotionComplete()) {delay(1);} //blocking
 
-  navigator.handleDropoff();
+    // Release the bag
+    Serial.println("Dropping.");
+    servo.writeMicroseconds(SERVO_C);
+    delay(500); //blocking, but we need to make sure servo has moved
+  }
 
-  drive(-2, 10);
-  while(!chassis.checkMotionComplete()) {}
-  turn(180, 45); //do a u-turn
+  delivery.currDest = START;
+
+  // Back up a little so the hook clears the handle
+  Serial.println("Backing up.");
+  chassis.driveFor(-5, 5);
+  while(!chassis.checkMotionComplete()) {delay(1);} // blocking    
+
+  // Now command a U-turn (needed for all deliveries)
+  Serial.println("U-turn");
+  turn(180, 45); 
 }
 
 // Handles a key press on the IR remote
@@ -207,20 +246,33 @@ void handleKeyPress(int16_t keyPress)
       // TODO: Handle house 1
       if(keyPress == NUM_1)
       {
-        navigator.setDestination(HOUSE_A);
+        delivery.deliveryDest = HOUSE_A;
+        delivery.currDest = PICKUP;
         beginLineFollowing();
       }
 
       // TODO: Handle house 2
       if(keyPress == NUM_2)
       {
-        navigator.setDestination(HOUSE_B);
+        delivery.deliveryDest = HOUSE_B;
+        delivery.currDest = PICKUP;
         beginLineFollowing();
       }
 
+      // For testing drop-offs
       if(keyPress == NUM_7)
       {
-        navigator.setTest(HOUSE_A);
+        delivery.deliveryDest = HOUSE_A;
+        delivery.currDest = HOUSE_A;
+        delivery.currLocation = ROAD_ABC; // We'll make a left turn then deliver
+        beginLineFollowing();
+      }
+
+      if(keyPress == NUM_8)
+      {
+        delivery.deliveryDest = HOUSE_B;
+        delivery.currDest = HOUSE_B;
+        delivery.currLocation = ROAD_ABC; // We'll drive straight then deliver
         beginLineFollowing();
       }
 
@@ -275,43 +327,6 @@ bool checkIntersectionEvent(int16_t darkThreshold)
   return retVal;
 }
 
-void handleTaskComplete(void)
-{
-  Action nextAction = navigator.handleMotionComplete();
-
-  Serial.println(nextAction);
-  switch(nextAction)
-  {
-    case TASK_IDLE:
-      idle();
-      break;
-    case TURN_LEFT: // Left
-      turn(90, 45);
-      break;
-    case TURN_RIGHT: // Right
-      turn(-90, 45);
-      break;
-    case TURN_STRAIGHT: // Right
-      beginLineFollowing();
-      break;
-    case TURN_UTURN: // Right
-      turn(180, 45);
-      break;
-    case TASK_PICKUP:
-      beginBagging();
-      break;
-    case TASK_DROPOFF0:
-      dropoffBag(SERVO_0);
-      break;
-    case TASK_DROPOFF4:
-    case TASK_DROPOFF8:
-      dropoffBag(SERVO_4);
-      break;
-    default:
-      break;
-  }
-}
-
 void handleIntersection(void)
 {
   Serial.println("Intersection!");
@@ -324,7 +339,7 @@ void handleIntersection(void)
 
   Serial.println("Cleared");
 
-  Action nextAction = navigator.handleIntersection();
+  Action nextAction = handleIntersection(delivery);
 
   Serial.println(nextAction);
   switch(nextAction)
@@ -348,7 +363,7 @@ void handleIntersection(void)
       beginBagging();
       break;
     case TASK_DROPOFF0:
-      dropoffBag(SERVO_0);
+      dropoffBag(delivery.deliveryDest);
       break;
     case TASK_DROPOFF4:
     case TASK_DROPOFF8:
@@ -404,7 +419,11 @@ void loop()
   switch(robotState)
   {
     case ROBOT_DRIVE_FOR: 
-       if(chassis.checkMotionComplete()) handleTaskComplete(); 
+       if(chassis.checkMotionComplete()) handleMotionComplete(); 
+       break;
+
+    case ROBOT_TURNING: 
+       if(chassis.checkMotionComplete()) beginLineFollowing(); 
        break;
 
     case ROBOT_LINE_FOLLOWING:
@@ -421,10 +440,113 @@ void loop()
     // TODO: Handle bagging state
     case ROBOT_DROPPING:
       handleLineFollowing(speed); //crawl towards bag
-      if(checkForPlatform(8)) {dropoffBag(SERVO_4);}
+      if(checkForPlatform(8)) {dropoffBag(delivery.deliveryDest);}
       break;
 
     default:
       break;
   }
 }
+
+
+
+
+/**
+ * handleIntersection() is called when the robot reaches an intersection. 
+ * It returns a value for which way the robot should go.
+ * */
+Action handleIntersection(Delivery& del)
+{
+    Serial.print("intersection: ");
+    Serial.print(del.currLocation);
+    Serial.print('\t');
+    Serial.print(del.currDest);
+    Serial.print('\t');
+ 
+    switch(del.currLocation)
+    {
+        case ROAD_MAIN:
+            if(del.currDest == PICKUP)
+            {
+                del.currLocation = ROAD_PICKUP;
+                return TASK_PICKUP;
+            }
+
+            else
+            {
+                del.currLocation = ROAD_START;
+                return TURN_STRAIGHT;
+            }
+
+            break;
+
+        case ROAD_PICKUP:
+            // regardless of destination
+            {
+                del.currLocation = ROAD_MAIN;
+                return TURN_STRAIGHT;
+            }
+
+            break;
+
+        case ROAD_START:
+            if(del.currDest == HOUSE_A || del.currDest == HOUSE_B)
+            {
+                del.currLocation = ROAD_ABC;
+                return TURN_STRAIGHT;
+            }
+            else if(del.currDest == START)
+            {
+                del.currLocation = ROAD_MAIN;
+                del.currDest = NONE;
+                del.deliveryDest = NONE;
+                return TASK_IDLE;
+            }
+
+            break;
+
+        case ROAD_ABC:
+            if(del.currDest == HOUSE_A)
+            {
+                del.currLocation = ROAD_A;
+                return TURN_LEFT;
+            }
+            else if(del.currDest == HOUSE_B)
+            {
+                del.currLocation = ROAD_B;
+                return TASK_DROPOFF4;
+            }
+            else if(del.currDest == START)
+            {
+                del.currLocation = ROAD_START;
+                return TURN_STRAIGHT;
+            }
+
+            break;
+
+        case ROAD_A:
+            if(del.currDest == HOUSE_A)
+            {
+                return TASK_DROPOFF0;
+            }
+            else if(del.currDest == START)
+            {
+                del.currLocation = ROAD_ABC;
+                return TURN_RIGHT;
+            }
+            break;
+
+        case ROAD_B:
+            if(del.currDest == START)
+            {
+                del.currLocation = ROAD_ABC;
+                return TURN_STRAIGHT;
+            }
+            break;
+
+        default: return TASK_IDLE;
+    }
+
+    return TASK_IDLE;
+}
+

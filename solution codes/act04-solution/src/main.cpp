@@ -56,7 +56,7 @@ void setLED(bool value)
 }
 
 // TODO: Add bagging state
-enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_TURNING, ROBOT_BAGGING, ROBOT_DROPPING};
+enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING, ROBOT_DROPPING};
 ROBOT_STATE robotState = ROBOT_IDLE;
 
 //Action handleIntersection(Delivery& del);
@@ -102,7 +102,8 @@ void beginLineFollowing(void)
 // Used to check if the motions above are complete
 void handleMotionComplete(void)
 {
-  idle();
+  if(delivery.deliveryDest != NONE) beginLineFollowing();
+  else idle();
 }
 
 // TODO: Add function to begin bagging
@@ -169,7 +170,7 @@ bool checkForPlatform(uint16_t threshold)
 }
 
 // TODO: Add function to drop off bag
-void dropoffBag(Destination dest)
+void dropOffBag(Destination dest)
 {
   Serial.print("Dropping...");
 
@@ -328,54 +329,6 @@ bool checkIntersectionEvent(int16_t darkThreshold)
   return retVal;
 }
 
-// void handleIntersection(void)
-// {
-//   Serial.println("Intersection!");
-
-//   // Drive forward by dead reckoning to center the robot
-//   chassis.driveFor(8, 5);
-
-//   // We'll block for this one to reduce the complexity
-//   while(!chassis.checkMotionComplete()) {}
-
-//   Serial.println("Cleared");
-
-//   Action nextAction = handleIntersection(delivery);
-
-//   Serial.println(nextAction);
-//   switch(nextAction)
-//   {
-//     case TASK_IDLE:
-//       idle();
-//       break;
-//     case TURN_LEFT: // Left
-//       turn(90, 45);
-//       break;
-//     case TURN_RIGHT: // Right
-//       turn(-90, 45);
-//       break;
-//     case TURN_STRAIGHT: // Right
-//       beginLineFollowing();
-//       break;
-//     case TURN_UTURN: // Right
-//       turn(180, 45);
-//       break;
-//     case TASK_PICKUP:
-//       beginBagging();
-//       break;
-//     case TASK_DROPOFF0:
-//       dropoffBag(delivery.deliveryDest);
-//       break;
-//     case TASK_DROPOFF4:
-//     case TASK_DROPOFF8:
-//       driveToDrop();
-//       break;
-//     default:
-//       break;
-//   }
-// }
-
-
 /*
  * This is the standard setup function that is called when the board is rebooted
  * It is used to initialize anything that needs to be done once.
@@ -423,10 +376,6 @@ void loop()
        if(chassis.checkMotionComplete()) handleMotionComplete(); 
        break;
 
-    case ROBOT_TURNING: 
-       if(chassis.checkMotionComplete()) beginLineFollowing(); 
-       break;
-
     case ROBOT_LINE_FOLLOWING:
       handleLineFollowing(speed); //argument is base speed
       if(checkIntersectionEvent(darkThreshold)) handleIntersection();
@@ -441,7 +390,7 @@ void loop()
     // TODO: Handle bagging state
     case ROBOT_DROPPING:
       handleLineFollowing(speed); //crawl towards bag
-      if(checkForPlatform(8)) {dropoffBag(delivery.deliveryDest);}
+      if(checkForPlatform(8)) {dropOffBag(delivery.deliveryDest);}
       break;
 
     default:
@@ -449,12 +398,8 @@ void loop()
   }
 }
 
-
-
-
 /**
  * handleIntersection() is called when the robot reaches an intersection. 
- * It returns a value for which way the robot should go.
  * */
 void handleIntersection(void)
 {
@@ -482,7 +427,6 @@ void handleIntersection(void)
                 delivery.currLocation = ROAD_PICKUP;
                 beginBagging();
             }
-
             else
             {
                 delivery.currLocation = ROAD_START;
@@ -519,8 +463,8 @@ void handleIntersection(void)
         case ROAD_ABC:
             if(delivery.currDest == HOUSE_A)
             {
+                turn(90, 45); // left turn
                 delivery.currLocation = ROAD_A;
-                turn(90, 45);
             }
             else if(delivery.currDest == HOUSE_B)
             {
@@ -538,12 +482,12 @@ void handleIntersection(void)
         case ROAD_A:
             if(delivery.currDest == HOUSE_A)
             {
-                dropoffBag(delivery.deliveryDest);
+                dropOffBag(delivery.deliveryDest);
             }
             else if(delivery.currDest == START)
             {
+                turn(-90, 45); //right turn
                 delivery.currLocation = ROAD_ABC;
-                turn(-90, 45);
             }
             break;
 

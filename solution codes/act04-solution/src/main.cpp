@@ -25,7 +25,7 @@
 Delivery delivery;
 
 uint16_t darkThreshold = 500;
-float speed = 10;
+float baseSpeed = 10;
 
 // Declare a chassis object with nominal dimensions
 // TODO: Adjust the parameters: wheel diam, encoder counts, wheel track
@@ -112,7 +112,7 @@ void handleMotionComplete(void)
 void beginBagging(void)
 {
   robotState = ROBOT_BAGGING;
-  speed = 5;
+  baseSpeed = 5;
 }
 
 // TODO: Add function to detect if bag is close enough
@@ -152,7 +152,7 @@ void pickupBag(void)
 void driveToDrop(void)
 {
   robotState = ROBOT_DROPPING;
-  speed = 5;
+  baseSpeed = 5;
 }
 
 // TODO: Add function to detect if platform is close enough
@@ -289,12 +289,12 @@ void handleKeyPress(int16_t keyPress)
     case ROBOT_LINE_FOLLOWING:
       if(keyPress == VOLplus)  //VOL+ increases speed
       {
-        speed += 5;
+        baseSpeed += 5;
       }
 
       if(keyPress == VOLminus)  //VOL- decreases speed
       {
-        speed -= 5;
+        baseSpeed -= 5;
       }
       break;
  
@@ -303,7 +303,7 @@ void handleKeyPress(int16_t keyPress)
   }
 }
 
-void handleLineFollowing(float baseSpeed)
+void handleLineFollowing(float speed)
 {
   const float Kp = 0.1;
 
@@ -313,7 +313,7 @@ void handleLineFollowing(float baseSpeed)
   int16_t error = leftADC - rightADC;
   float turnEffort = Kp * error;
   
-  chassis.setTwist(baseSpeed, turnEffort);
+  chassis.setTwist(speed, turnEffort);
 }
 
 // //here's a nice opportunity to introduce boolean logic
@@ -381,19 +381,19 @@ void loop()
        break;
 
     case ROBOT_LINE_FOLLOWING:
-      handleLineFollowing(speed); //argument is base speed
+      handleLineFollowing(baseSpeed); //argument is base speed
       if(checkIntersectionEvent(darkThreshold)) handleIntersection();
       break;
 
     // TODO: Handle bagging state
     case ROBOT_BAGGING:
-      handleLineFollowing(speed); //crawl towards bag
+      handleLineFollowing(baseSpeed); //crawl towards bag
       if(checkBagEvent(8)) {pickupBag();}
       break;
 
     // TODO: Handle dropping off state
     case ROBOT_DROPPING:
-      handleLineFollowing(speed); //crawl towards bag
+      handleLineFollowing(baseSpeed); //crawl towards bag
       if(checkForPlatform(8)) {dropOffBag(delivery.deliveryDest);}
       break;
 

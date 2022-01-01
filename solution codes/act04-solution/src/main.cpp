@@ -58,7 +58,7 @@ void setLED(bool value)
 }
 
 // TODO: Add bagging state
-enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING, ROBOT_DROPPING};
+enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING};//, ROBOT_DROPPING};
 ROBOT_STATE robotState = ROBOT_IDLE;
 
 //Action handleIntersection(Delivery& del);
@@ -72,6 +72,8 @@ void idle(void)
 
   //stop motors 
   chassis.idle();
+
+  delivery.deliveryDest = NONE;
 
   //set state to idle
   robotState = ROBOT_IDLE;
@@ -147,37 +149,33 @@ void pickupBag(void)
   turn(180, 45); //do a u-turn
 }
 
-// TODO: Add function to start dropping sequence
-void beginDriveToDrop(void)
-{
-  robotState = ROBOT_DROPPING;
-  baseSpeed = 5;
-}
+// // TODO: Add function to start dropping sequence
+// void beginDriveToDrop(void)
+// {
+//   robotState = ROBOT_DROPPING;
+//   baseSpeed = 5;
+// }
 
-// TODO: Add function to detect if platform is close enough
-bool checkForPlatform(uint16_t threshold)
-{
-  static uint16_t prevDistance = 99;
+// // TODO: Add function to detect if platform is close enough
+// bool checkForPlatform(uint16_t threshold)
+// {
+//   static uint16_t prevDistance = 99;
 
-  bool retVal = false;
+//   bool retVal = false;
 
-  uint16_t currDistance = rangefinder.getDistance();
+//   uint16_t currDistance = rangefinder.getDistance();
 
-  if(prevDistance > threshold && currDistance <= threshold) retVal = true;
-  prevDistance = currDistance;
+//   if(prevDistance > threshold && currDistance <= threshold) retVal = true;
+//   prevDistance = currDistance;
 
-  return retVal;
-}
+//   return retVal;
+// }
 
 // TODO: Add function to drop off bag
 void dropOffBag(Destination dest)
 {
   Serial.print("Dropping...");
 
-  /**
-   * House A is at ground level. We do not check for a platform, because the dropoff
-   * is indicated by a line.
-   * */
   if(dest == HOUSE_A) 
   {
     // Adjust position
@@ -195,8 +193,8 @@ void dropOffBag(Destination dest)
   else if(dest == HOUSE_B) 
   {  
     Serial.println("Crawling forward.");
-    chassis.driveFor(8, 2);
-    while(!chassis.checkMotionComplete()) {delay(1);} //blocking
+    chassis.driveFor(2, 2);
+    while(!chassis.checkMotionComplete()) {delay(1);} // blocking
     
     // Release the bag
     Serial.println("Dropping.");
@@ -207,7 +205,7 @@ void dropOffBag(Destination dest)
   else if(dest == HOUSE_C) 
   {
     Serial.println("Crawling forward.");
-    chassis.driveFor(8, 2);
+    chassis.driveFor(2, 2);
     while(!chassis.checkMotionComplete()) {delay(1);} //blocking
 
     // Release the bag
@@ -390,15 +388,15 @@ void loop()
       break;
 
     // TODO: Handle dropping off state
-    case ROBOT_DROPPING:
-      handleLineFollowing(baseSpeed); //crawl towards bag
+    // case ROBOT_DROPPING:
+    //   handleLineFollowing(baseSpeed); //crawl towards bag
       
-      // For the dropoffs with platforms, we'll see a platform with the rangefinder
-      if(checkForPlatform(8)) {dropOffBag(delivery.deliveryDest);}
+    //   // For the dropoffs with platforms, we'll see a platform with the rangefinder
+    //   if(checkForPlatform(8)) {dropOffBag(delivery.deliveryDest);}
 
-      // // For the ground level delivery, we'll detect the tape
-      // if(checkIntersectionEvent(darkThreshold)) {dropOffBag(delivery.deliveryDest);}
-      break;
+    //   // // For the ground level delivery, we'll detect the tape
+    //   // if(checkIntersectionEvent(darkThreshold)) {dropOffBag(delivery.deliveryDest);}
+    //   break;
 
     default:
       break;
@@ -479,7 +477,7 @@ void handleIntersection(void)
             else if(delivery.currDest == HOUSE_B)
             {
                 delivery.currLocation = ROAD_B;
-                beginDriveToDrop();
+                beginLineFollowing();
             }
             else if(delivery.currDest == START)
             {
@@ -502,7 +500,11 @@ void handleIntersection(void)
             break;
 
         case ROAD_B:
-            if(delivery.currDest == START)
+            if(delivery.currDest == HOUSE_B)
+            {
+                dropOffBag(delivery.deliveryDest);
+            }
+            else if(delivery.currDest == START)
             {
                 delivery.currLocation = ROAD_ABC;
                 beginLineFollowing();

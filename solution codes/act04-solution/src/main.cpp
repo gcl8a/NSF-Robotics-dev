@@ -146,6 +146,8 @@ void pickupBag(void)
   delivery.currDest = delivery.deliveryDest;
 
   turn(180, 45); //do a u-turn
+  while(!chassis.checkMotionComplete()) {delay(1);}
+  beginLineFollowing();
 }
 
 // TODO: Add function to start dropping sequence
@@ -228,6 +230,8 @@ void dropOffBag(Destination dest)
   // Now command a U-turn (needed for all deliveries)
   Serial.println("U-turn");
   turn(180, 45); 
+  while(!chassis.checkMotionComplete()) {delay(1);}
+  beginLineFollowing();
 }
 
 // Handles a key press on the IR remote
@@ -398,8 +402,8 @@ void loop()
       // For the dropoffs with platforms, we'll see a platform with the rangefinder
       if(checkForPlatform(8)) {dropOffBag(delivery.deliveryDest);}
 
-      // // For the ground level delivery, we'll detect the tape
-      // if(checkIntersectionEvent(darkThreshold)) {dropOffBag(delivery.deliveryDest);}
+      // For the ground level delivery, we'll detect the tape
+      if(checkIntersectionEvent(darkThreshold)) {dropOffBag(delivery.deliveryDest);}
       break;
 
     default:
@@ -415,17 +419,7 @@ void loop()
  * */
 void handleIntersection(void)
 {
-    Serial.println("Intersection!");
-
-    // Drive forward by dead reckoning to center the robot
-    chassis.driveFor(8, 5);
-
-    // We'll block for this one to reduce the complexity
-    while(!chassis.checkMotionComplete()) {}
-
-    Serial.println("Cleared");
-
-    Serial.print("intersection: ");
+    Serial.print("Intersection: ");
     Serial.print(delivery.currLocation);
     Serial.print('\t');
     Serial.print(delivery.currDest);
@@ -475,8 +469,14 @@ void handleIntersection(void)
         case ROAD_ABC:
             if(delivery.currDest == HOUSE_A)
             {
-                turn(90, 45); // left turn
+                chassis.driveFor(8, 5); // Drive forward by dead reckoning to center the robot
+                while(!chassis.checkMotionComplete()) {delay(1);} // Blocks while we wait for motion to complete
+
+                turn(90, 45); // Left turn
+                while(!chassis.checkMotionComplete()) {delay(1);} // Blocks while we wait for turn to complete
+
                 delivery.currLocation = ROAD_A;
+                beginDriveToDrop();
             }
             else if(delivery.currDest == HOUSE_B)
             {
@@ -492,15 +492,20 @@ void handleIntersection(void)
             break;
 
         case ROAD_A:
-            if(delivery.currDest == HOUSE_A)
-            {
-                dropOffBag(delivery.deliveryDest);
-            }
-            else 
+            // if(delivery.currDest == HOUSE_A)
+            // {
+            //     dropOffBag(delivery.deliveryDest);
+            // }
+            // else 
             if(delivery.currDest == START)
             {
-                turn(-90, 45); //right turn
+                chassis.driveFor(8, 5); // Drive forward by dead reckoning to center the robot
+                while(!chassis.checkMotionComplete()) {delay(1);} // Blocks while we wait for motion to complete
+
+                turn(-90, 45); //Right turn
+                while(!chassis.checkMotionComplete()) {delay(1);} // Blocks while we wait for turn to complete
                 delivery.currLocation = ROAD_ABC;
+                beginLineFollowing();
             }
             break;
 

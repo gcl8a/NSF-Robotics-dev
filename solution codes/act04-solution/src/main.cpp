@@ -58,7 +58,7 @@ void setLED(bool value)
 }
 
 // TODO: Add bagging state
-enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING};//, ROBOT_DROPPING};
+enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING};
 ROBOT_STATE robotState = ROBOT_IDLE;
 
 //Action handleIntersection(Delivery& del);
@@ -148,28 +148,6 @@ void pickupBag(void)
 
   turn(180, 45); //do a u-turn
 }
-
-// // TODO: Add function to start dropping sequence
-// void beginDriveToDrop(void)
-// {
-//   robotState = ROBOT_DROPPING;
-//   baseSpeed = 5;
-// }
-
-// // TODO: Add function to detect if platform is close enough
-// bool checkForPlatform(uint16_t threshold)
-// {
-//   static uint16_t prevDistance = 99;
-
-//   bool retVal = false;
-
-//   uint16_t currDistance = rangefinder.getDistance();
-
-//   if(prevDistance > threshold && currDistance <= threshold) retVal = true;
-//   prevDistance = currDistance;
-
-//   return retVal;
-// }
 
 // TODO: Add function to drop off bag
 void dropOffBag(Destination dest)
@@ -386,17 +364,6 @@ void loop()
       handleLineFollowing(baseSpeed); //crawl towards bag
       if(checkBagEvent(8)) {pickupBag();}
       break;
-
-    // TODO: Handle dropping off state
-    // case ROBOT_DROPPING:
-    //   handleLineFollowing(baseSpeed); //crawl towards bag
-      
-    //   // For the dropoffs with platforms, we'll see a platform with the rangefinder
-    //   if(checkForPlatform(8)) {dropOffBag(delivery.deliveryDest);}
-
-    //   // // For the ground level delivery, we'll detect the tape
-    //   // if(checkIntersectionEvent(darkThreshold)) {dropOffBag(delivery.deliveryDest);}
-    //   break;
 
     default:
       break;

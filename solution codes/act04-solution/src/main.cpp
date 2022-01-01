@@ -123,7 +123,6 @@ bool checkBagEvent(uint16_t threshold)
   bool retVal = false;
 
   uint16_t currDistance = rangefinder.getDistance();
-  // Serial.println(String("dist: ") + String(currDistance));
 
   if(prevDistance > threshold && currDistance <= threshold) retVal = true;
   prevDistance = currDistance;
@@ -163,7 +162,6 @@ bool checkForPlatform(uint16_t threshold)
   bool retVal = false;
 
   uint16_t currDistance = rangefinder.getDistance();
-  // Serial.println(String("dist: ") + String(currDistance));
 
   if(prevDistance > threshold && currDistance <= threshold) retVal = true;
   prevDistance = currDistance;
@@ -184,7 +182,7 @@ void dropOffBag(Destination dest)
   {
     // Adjust position
     Serial.println("Backing up.");
-    chassis.driveFor(-10, 5);
+    chassis.driveFor(-5, 5);
     while(!chassis.checkMotionComplete()) {delay(1);} // blocking
 
     // Release the bag
@@ -496,8 +494,7 @@ void handleIntersection(void)
             {
                 dropOffBag(delivery.deliveryDest);
             }
-            else 
-            if(delivery.currDest == START)
+            else if(delivery.currDest == START)
             {
                 turn(-90, 45); //right turn
                 delivery.currLocation = ROAD_ABC;

@@ -149,7 +149,7 @@ void pickupBag(void)
 }
 
 // TODO: Add function to start dropping sequence
-void driveToDrop(void)
+void beginDriveToDrop(void)
 {
   robotState = ROBOT_DROPPING;
   baseSpeed = 5;
@@ -394,7 +394,12 @@ void loop()
     // TODO: Handle dropping off state
     case ROBOT_DROPPING:
       handleLineFollowing(baseSpeed); //crawl towards bag
+      
+      // For the dropoffs with platforms, we'll see a platform with the rangefinder
       if(checkForPlatform(8)) {dropOffBag(delivery.deliveryDest);}
+
+      // // For the ground level delivery, we'll detect the tape
+      // if(checkIntersectionEvent(darkThreshold)) {dropOffBag(delivery.deliveryDest);}
       break;
 
     default:
@@ -476,7 +481,7 @@ void handleIntersection(void)
             else if(delivery.currDest == HOUSE_B)
             {
                 delivery.currLocation = ROAD_B;
-                driveToDrop();
+                beginDriveToDrop();
             }
             else if(delivery.currDest == START)
             {
@@ -491,7 +496,8 @@ void handleIntersection(void)
             {
                 dropOffBag(delivery.deliveryDest);
             }
-            else if(delivery.currDest == START)
+            else 
+            if(delivery.currDest == START)
             {
                 turn(-90, 45); //right turn
                 delivery.currLocation = ROAD_ABC;

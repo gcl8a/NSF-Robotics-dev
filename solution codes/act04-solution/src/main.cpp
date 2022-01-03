@@ -36,11 +36,11 @@ Chassis chassis(7.0, 1440, 14.9);
 Servo32U4 servo;
 
 // TODO: Define the servo positions for each of the platforms
+#define SERVO_UP 2000
+#define SERVO_DOWN 1000
 #define SERVO_A 1000
 #define SERVO_B 1300
 #define SERVO_C 1600
-#define SERVO_UP 2000
-#define SERVO_DOWN 1000
 
 // TODO: Declare rangefinder object
 Rangefinder rangefinder(11, 4);
@@ -73,7 +73,9 @@ void idle(void)
   //stop motors 
   chassis.idle();
 
+  // TODO: Reset the destinations to NONE
   delivery.deliveryDest = NONE;
+  delivery.currDest = NONE;
 
   //set state to idle
   robotState = ROBOT_IDLE;
@@ -103,7 +105,7 @@ void beginLineFollowing(void)
   robotState = ROBOT_LINE_FOLLOWING;
 }
 
-// Used to check if the motions above are complete
+// TODO: If there is a destination, begin line following
 void handleMotionComplete(void)
 {
   if(delivery.deliveryDest != NONE) beginLineFollowing();
@@ -150,59 +152,59 @@ void pickupBag(void)
 }
 
 // TODO: Add function to drop off bag
-void dropOffBag(Destination dest)
-{
-  Serial.print("Dropping...");
+// void dropOffBag(Destination dest)
+// {
+//   Serial.print("Dropping...");
 
-  if(dest == HOUSE_A) 
-  {
-    // Adjust position
-    Serial.println("Backing up.");
-    chassis.driveFor(-5, 5);
-    while(!chassis.checkMotionComplete()) {delay(1);} // blocking
+//   if(dest == HOUSE_A) 
+//   {
+//     // Adjust position
+//     Serial.println("Backing up.");
+//     chassis.driveFor(-5, 5);
+//     while(!chassis.checkMotionComplete()) {delay(1);} // blocking
 
-    // Release the bag
-    Serial.println("Dropping.");
-    servo.writeMicroseconds(SERVO_A);
-    delay(500); //blocking, but we need to make sure servo has moved
-  }
+//     // Release the bag
+//     Serial.println("Dropping.");
+//     servo.writeMicroseconds(SERVO_A);
+//     delay(500); //blocking, but we need to make sure servo has moved
+//   }
 
-  // For B and C, we need to drive forward a bit
-  else if(dest == HOUSE_B) 
-  {  
-    Serial.println("Crawling forward.");
-    chassis.driveFor(2, 2);
-    while(!chassis.checkMotionComplete()) {delay(1);} // blocking
+//   // For B and C, we need to drive forward a bit
+//   else if(dest == HOUSE_B) 
+//   {  
+//     Serial.println("Crawling forward.");
+//     chassis.driveFor(2, 2);
+//     while(!chassis.checkMotionComplete()) {delay(1);} // blocking
     
-    // Release the bag
-    Serial.println("Dropping.");
-    servo.writeMicroseconds(SERVO_B);
-    delay(500); //blocking, but we need to make sure servo has moved
-  }
+//     // Release the bag
+//     Serial.println("Dropping.");
+//     servo.writeMicroseconds(SERVO_B);
+//     delay(500); //blocking, but we need to make sure servo has moved
+//   }
 
-  else if(dest == HOUSE_C) 
-  {
-    Serial.println("Crawling forward.");
-    chassis.driveFor(2, 2);
-    while(!chassis.checkMotionComplete()) {delay(1);} //blocking
+//   else if(dest == HOUSE_C) 
+//   {
+//     Serial.println("Crawling forward.");
+//     chassis.driveFor(2, 2);
+//     while(!chassis.checkMotionComplete()) {delay(1);} //blocking
 
-    // Release the bag
-    Serial.println("Dropping.");
-    servo.writeMicroseconds(SERVO_C);
-    delay(500); //blocking, but we need to make sure servo has moved
-  }
+//     // Release the bag
+//     Serial.println("Dropping.");
+//     servo.writeMicroseconds(SERVO_C);
+//     delay(500); //blocking, but we need to make sure servo has moved
+//   }
 
-  delivery.currDest = START;
+//   delivery.currDest = START;
 
-  // Back up a little so the hook clears the handle
-  Serial.println("Backing up.");
-  chassis.driveFor(-5, 5);
-  while(!chassis.checkMotionComplete()) {delay(1);} // blocking    
+//   // Back up a little so the hook clears the handle
+//   Serial.println("Backing up.");
+//   chassis.driveFor(-5, 5);
+//   while(!chassis.checkMotionComplete()) {delay(1);} // blocking    
 
-  // Now command a U-turn (needed for all deliveries)
-  Serial.println("U-turn");
-  turn(180, 45); 
-}
+//   // Now command a U-turn (needed for all deliveries)
+//   Serial.println("U-turn");
+//   turn(180, 45); 
+// }
 
 // Handles a key press on the IR remote
 void handleKeyPress(int16_t keyPress)
@@ -402,81 +404,81 @@ void handleIntersection(void)
                 delivery.currLocation = ROAD_PICKUP;
                 beginBagging();
             }
-            else
-            {
-                delivery.currLocation = ROAD_START;
-                beginLineFollowing();
-            }
+            // else
+            // {
+            //     delivery.currLocation = ROAD_START;
+            //     beginLineFollowing();
+            // }
 
             break;
 
         case ROAD_PICKUP:
-            // regardless of destination
-            {
-                delivery.currLocation = ROAD_MAIN;
-                beginLineFollowing();
-            }
+            // // regardless of destination
+            // {
+            //     delivery.currLocation = ROAD_MAIN;
+            //     beginLineFollowing();
+            // }
 
             break;
 
-        case ROAD_START:
-            if(delivery.currDest == HOUSE_A || delivery.currDest == HOUSE_B)
-            {
-                delivery.currLocation = ROAD_ABC;
-                beginLineFollowing();
-            }
-            else if(delivery.currDest == START)
-            {
-                delivery.currLocation = ROAD_MAIN;
-                delivery.currDest = NONE;
-                delivery.deliveryDest = NONE;
-                idle();
-            }
+        //case ROAD_START:
+            // if(delivery.currDest == HOUSE_A || delivery.currDest == HOUSE_B)
+            // {
+            //     delivery.currLocation = ROAD_ABC;
+            //     beginLineFollowing();
+            // }
+            // else if(delivery.currDest == START)
+            // {
+            //     delivery.currLocation = ROAD_MAIN;
+            //     delivery.currDest = NONE;
+            //     delivery.deliveryDest = NONE;
+            //     idle();
+            // }
 
             break;
 
         case ROAD_ABC:
-            if(delivery.currDest == HOUSE_A)
-            {
-                turn(90, 45); // left turn
-                delivery.currLocation = ROAD_A;
-            }
-            else if(delivery.currDest == HOUSE_B)
-            {
-                delivery.currLocation = ROAD_B;
-                beginLineFollowing();
-            }
-            else if(delivery.currDest == START)
-            {
-                delivery.currLocation = ROAD_START;
-                beginLineFollowing();
-            }
+        //     if(delivery.currDest == HOUSE_A)
+        //     {
+        //         turn(90, 45); // left turn
+        //         delivery.currLocation = ROAD_A;
+        //     }
+        //     else if(delivery.currDest == HOUSE_B)
+        //     {
+        //         delivery.currLocation = ROAD_B;
+        //         beginLineFollowing();
+        //     }
+        //     else if(delivery.currDest == START)
+        //     {
+        //         delivery.currLocation = ROAD_START;
+        //         beginLineFollowing();
+        //     }
 
             break;
 
         case ROAD_A:
-            if(delivery.currDest == HOUSE_A)
-            {
-                dropOffBag(delivery.deliveryDest);
-            }
-            else if(delivery.currDest == START)
-            {
-                turn(-90, 45); //right turn
-                delivery.currLocation = ROAD_ABC;
-            }
-            break;
+        //     if(delivery.currDest == HOUSE_A)
+        //     {
+        //         dropOffBag(delivery.deliveryDest);
+        //     }
+        //     else if(delivery.currDest == START)
+        //     {
+        //         turn(-90, 45); //right turn
+        //         delivery.currLocation = ROAD_ABC;
+        //     }
+        //     break;
 
         case ROAD_B:
-            if(delivery.currDest == HOUSE_B)
-            {
-                dropOffBag(delivery.deliveryDest);
-            }
-            else if(delivery.currDest == START)
-            {
-                delivery.currLocation = ROAD_ABC;
-                beginLineFollowing();
-            }
-            break;
+        //     if(delivery.currDest == HOUSE_B)
+        //     {
+        //         dropOffBag(delivery.deliveryDest);
+        //     }
+        //     else if(delivery.currDest == START)
+        //     {
+        //         delivery.currLocation = ROAD_ABC;
+        //         beginLineFollowing();
+        //     }
+        //     break;
 
         default: 
           Serial.println("Unhandled case!");

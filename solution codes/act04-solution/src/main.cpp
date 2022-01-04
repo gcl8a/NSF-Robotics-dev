@@ -175,14 +175,14 @@ void dropOffBag(void)
     // For B and C, we need to drive forward a bit
     else if(delivery.deliveryDest == HOUSE_B) 
     {  
-    Serial.println("Crawling forward.");
-    chassis.driveFor(2, 2);
-    while(!chassis.checkMotionComplete()) {delay(1);} // blocking
-    
-    // Release the bag
-    Serial.println("Dropping.");
-    servo.writeMicroseconds(SERVO_B);
-    delay(500); //blocking, but we need to make sure servo has moved
+      Serial.println("Crawling forward.");
+      chassis.driveFor(2, 2);
+      while(!chassis.checkMotionComplete()) {delay(1);} // blocking
+      
+      // Release the bag by moving the servo to the right height for the platform
+      Serial.println("Dropping.");
+      servo.writeMicroseconds(SERVO_B);
+      delay(500); //blocking, but we need to make sure servo has moved
     }
     
     else if(delivery.deliveryDest == HOUSE_C) {} // to fill in later
@@ -190,16 +190,14 @@ void dropOffBag(void)
     // Back up a little so the hook clears the handle
     Serial.println("Backing up.");
     chassis.driveFor(-5, 5);
-    while(!chassis.checkMotionComplete()) {delay(1);} // blocking    
+    while(!chassis.checkMotionComplete()) {delay(1);} // blocking   
+
     // Now command a U-turn (needed for all deliveries)
     Serial.println("U-turn");
     turn(180, 45); 
 
     delivery.currDest = START;
  }
-
-
-// TODO, Section...: Add function to drop off bag
 
 // Handles a key press on the IR remote
 void handleKeyPress(int16_t keyPress)

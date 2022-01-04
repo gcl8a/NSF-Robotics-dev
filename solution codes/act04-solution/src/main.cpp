@@ -177,7 +177,15 @@ void handleKeyPress(int16_t keyPress)
       else if(keyPress == SETUP_BTN) beginLineFollowing();
       else if(keyPress == REWIND) beginBagging(); // Rewind is used to test bagging
 
-      // TODO, Section...: Handle house B
+      // TODO, Section 4.1: Handle house B
+
+      else if(keyPress == NUM_2)
+      {
+        delivery.currDest = PICKUP;
+        delivery.deliveryDest = HOUSE_B;
+        beginLineFollowing();
+      }
+
 
       break;
       
@@ -327,15 +335,7 @@ void handleIntersection(void)
 
             break;
 
-        // TODO, Section...: Add case to handle ROAD_PICKUP
-        case ROAD_PICKUP:
-            // regardless of destination
-            {
-                delivery.currLocation = ROAD_MAIN;
-                beginLineFollowing();
-            }
-
-            break;
+        // TODO, Section 4.1: Add case to handle ROAD_PICKUP
 
         default: 
           Serial.println("Unhandled case!");

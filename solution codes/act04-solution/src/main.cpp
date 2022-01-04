@@ -186,24 +186,7 @@ void handleKeyPress(int16_t keyPress)
 
       // TODO: Handle house C
 
-      // For testing drop-offs
-      if(keyPress == NUM_7) // Starting on ABC, deliver to A
-      {
-        delivery.deliveryDest = HOUSE_A;
-        delivery.currDest = HOUSE_A;
-        delivery.currLocation = ROAD_ABC; // We'll make a left turn then deliver
-        beginLineFollowing();
-      }
-
-      if(keyPress == NUM_8) // Starting on ABC, deliver to B
-      {
-        delivery.deliveryDest = HOUSE_B;
-        delivery.currDest = HOUSE_B;
-        delivery.currLocation = ROAD_ABC; // We'll drive straight then deliver
-        beginLineFollowing();
-      }
-
-      // TODO: Handle rewind button -> initiate bag pickup
+      // Handle rewind button -> initiate bag pickup
       else if(keyPress == REWIND) beginBagging();
       break;
       

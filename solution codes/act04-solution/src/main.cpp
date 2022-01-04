@@ -60,8 +60,7 @@ void setLED(bool value)
 }
 
 // TODO, Section 5.1: Add dropping state
-//////////////////remove
-enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING, ROBOT_DROPPING};
+enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING};
 ROBOT_STATE robotState = ROBOT_IDLE;
 
 //Action handleIntersection(Delivery& del);
@@ -73,14 +72,14 @@ void idle(void)
   Serial.println("idle()");
   setLED(LOW);
 
-  //stop motors 
+  // Stop the motors 
   chassis.idle();
 
-  // TODO: Reset the destinations to NONE
+  // Reset the destinations to NONE
   delivery.deliveryDest = NONE;
   delivery.currDest = NONE;
 
-  //set state to idle
+  // Set state to idle
   robotState = ROBOT_IDLE;
 }
 
@@ -108,14 +107,14 @@ void beginLineFollowing(void)
   robotState = ROBOT_LINE_FOLLOWING;
 }
 
-// TODO, Section...: If there is a destination, begin line following
+// Updated handleMotionComplete, which returns to line following after a motion (e.g., turning) is complete
 void handleMotionComplete(void)
 {
   if(delivery.deliveryDest != NONE) beginLineFollowing();
   else idle();
 }
 
-// TODO: Add function to begin bagging
+// Function to begin bagging
 void beginBagging(void)
 {
   robotState = ROBOT_BAGGING;
@@ -124,13 +123,9 @@ void beginBagging(void)
 
 void beginDropping(void)
 {
-  //idle();
   // TODO, Section 5.1: Edit function to begin dropping sequence
-  /////////////////remove -- return to idle();
-  robotState = ROBOT_DROPPING;
-  baseSpeed = 5;
+  idle(); // Don't forget to remove idle()
 }
-
 
 // Function to detect if bag is close enough
 bool checkBagEvent(uint16_t threshold)
@@ -165,40 +160,11 @@ void pickupBag(void)
 }
 
 // TODO, Section 5.1: Write dropOffBag() function
-///////////////////remove
 void dropOffBag(void)
 {
     Serial.print("Dropping...");
-    
-    if(delivery.deliveryDest == HOUSE_A) {} //to be filled in later
-    
-    // For B and C, we need to drive forward a bit
-    else if(delivery.deliveryDest == HOUSE_B) 
-    {  
-      Serial.println("Crawling forward.");
-      chassis.driveFor(2, 2);
-      while(!chassis.checkMotionComplete()) {delay(1);} // blocking
-      
-      // Release the bag by moving the servo to the right height for the platform
-      Serial.println("Dropping.");
-      servo.writeMicroseconds(SERVO_B);
-      delay(500); //blocking, but we need to make sure servo has moved
-    }
-    
-    else if(delivery.deliveryDest == HOUSE_C) {} // to fill in later
 
-    // Back up a little so the hook clears the handle
-    Serial.println("Backing up.");
-    chassis.driveFor(-5, 5);
-    while(!chassis.checkMotionComplete()) {delay(1);} // blocking   
-
-    // Now command a U-turn (needed for all deliveries)
-    Serial.println("U-turn");
-    turn(180, 45); 
-
-    //TODO, Section 5.2: begin returning to start
-    ///////////////////remove
-    delivery.currDest = START;
+    //TODO, Section 5.2: reset destination to start
  }
 
 // Handles a key press on the IR remote
@@ -206,7 +172,7 @@ void handleKeyPress(int16_t keyPress)
 {
   Serial.println("Key: " + String(keyPress));
 
-  //ENTER_SAVE idles, regardless of state -- E-stop
+  // ENTER_SAVE idles, regardless of state -- E-stop
   if(keyPress == ENTER_SAVE) idle(); 
 
   switch(robotState)
@@ -220,13 +186,6 @@ void handleKeyPress(int16_t keyPress)
       else if(keyPress == REWIND) beginBagging(); // Rewind is used to test bagging
 
       // TODO, Section 4.1: Handle house B
-      ////////////////////// remove
-      else if(keyPress == NUM_2)
-      {
-        delivery.currDest = PICKUP;
-        delivery.deliveryDest = HOUSE_B;
-        beginLineFollowing();
-      }
 
       break;
       
@@ -260,7 +219,7 @@ void handleLineFollowing(float speed)
   chassis.setTwist(speed, turnEffort);
 }
 
-// //here's a nice opportunity to introduce boolean logic
+// Checks for the _event_ of reaching an intersection -- opportunity to introduce boolean logic
 bool checkIntersectionEvent(int16_t darkThreshold)
 {
   static bool prevIntersection = false;
@@ -287,17 +246,17 @@ void setup()
   chassis.init();
   idle();
 
-  //these can be undone for the student to adjust
+  // TODO (optional): Update PID coefficients to values in previous activity
   chassis.setMotorPIDcoeffs(5, 0.5);
 
   // Attach the servo
   servo.attach();
   servo.writeMicroseconds(SERVO_UP); 
 
-  // TODO: Initialize rangefinder
+  // Initialize rangefinder
   rangefinder.init();
 
-  // initialize the IR decoder
+  // Initialize the IR decoder
   decoder.init();
 
   Serial.println("/setup()");
@@ -332,12 +291,6 @@ void loop()
       break;
 
     // TODO, Section 5.1: Manage dropping state
-    ///////////////remove
-    case ROBOT_DROPPING:
-      handleLineFollowing(baseSpeed); //crawl towards bag
-      if(checkBagEvent(8)) {dropOffBag();}
-      break;
-
 
     default:
       break;
@@ -378,54 +331,14 @@ void handleIntersection(void)
             }
 
             //TODO, Section, 4.1: Handle all other conditions with else
-            ///////////////////////remove
-            else
-            {
-              delivery.currLocation = ROAD_ABC;
-              beginLineFollowing();
-            }
 
             break;
 
         // TODO, Section 4.1: Add case to handle ROAD_PICKUP
-        /////////////////////////// remove
-        case ROAD_PICKUP:
-          delivery.currLocation = ROAD_MAIN;
-          beginLineFollowing();
-
-          break;
 
         // TODO, Section 4.1: Add case for ROAD_ABC
-        ///////////////////////remove
-        case ROAD_ABC:
-            if(delivery.currDest == HOUSE_A) {} //filled in later
-            
-            else if(delivery.currDest == HOUSE_B)
-            {
-                delivery.currLocation = ROAD_B;
-                beginDropping();
-            }
-            
-            else if(delivery.currDest == HOUSE_C) {} //filled in later
-
-            // TODO, Section 5.2: Add getting back to start
-            else if(delivery.currDest == START)
-            {
-              delivery.currLocation = ROAD_MAIN;
-              idle();
-            }
-            
-           break;
 
         // TODO, Section 5.2: handle ROAD_B to get back to start
-        case ROAD_B:
-            if(delivery.currDest == START)
-            {
-                delivery.currLocation = ROAD_ABC;
-                beginLineFollowing();
-            }
-
-            break;
 
         default: 
           Serial.println("Unhandled case!");

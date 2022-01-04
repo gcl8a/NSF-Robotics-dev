@@ -176,16 +176,8 @@ void handleKeyPress(int16_t keyPress)
       else if(keyPress == RIGHT_ARROW) turn(-90, 45);
       else if(keyPress == SETUP_BTN) beginLineFollowing();
 
-      // TODO: Handle house A
-      if(keyPress == NUM_1)
-      {
-        delivery.deliveryDest = HOUSE_A;
-        delivery.currDest = PICKUP;
-        beginLineFollowing();
-      }
-
       // TODO: Handle house B
-      if(keyPress == NUM_2)
+      else if(keyPress == NUM_2)
       {
         delivery.deliveryDest = HOUSE_B;
         delivery.currDest = PICKUP;

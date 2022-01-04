@@ -176,7 +176,7 @@ void dropOffBag(void)
     else if(delivery.deliveryDest == HOUSE_B) 
     {  
     Serial.println("Crawling forward.");
-    chassis.driveFor(8, 2);
+    chassis.driveFor(2, 2);
     while(!chassis.checkMotionComplete()) {delay(1);} // blocking
     
     // Release the bag

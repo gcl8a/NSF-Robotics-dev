@@ -35,9 +35,10 @@ Chassis chassis(7.0, 1440, 14.9);
 // Due to library constraints, servo MUST be connected to pin 5
 Servo32U4 servo;
 
-// TODO: Define the servo positions for each of the platforms
 #define SERVO_UP 2000
 #define SERVO_DOWN 1000
+
+// TODO: Define the addtional servo positions for each of the platforms
 #define SERVO_A 1000
 #define SERVO_B 1300
 #define SERVO_C 1600
@@ -58,7 +59,7 @@ void setLED(bool value)
 }
 
 // TODO: Add bagging state
-enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING};
+enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING, ROBOT_DROPPING};
 ROBOT_STATE robotState = ROBOT_IDLE;
 
 //Action handleIntersection(Delivery& del);
@@ -118,6 +119,14 @@ void beginBagging(void)
   robotState = ROBOT_BAGGING;
   baseSpeed = 5;
 }
+
+// TODO, Section...: Add function to begin dropping sequence
+void beginDropping(void)
+{
+  robotState = ROBOT_DROPPING;
+  baseSpeed = 5;
+}
+
 
 // TODO: Add function to detect if bag is close enough
 bool checkBagEvent(uint16_t threshold)
@@ -367,6 +376,12 @@ void loop()
       if(checkBagEvent(8)) {pickupBag();}
       break;
 
+    // TODO, Section...: Manage dropping task
+    case ROBOT_DROPPING:
+      handleLineFollowing(baseSpeed); //crawl towards bag
+      if(checkBagEvent(8)) {idle();}//{dropOffBag();}
+      break;
+
     default:
       break;
   }
@@ -404,20 +419,23 @@ void handleIntersection(void)
                 delivery.currLocation = ROAD_PICKUP;
                 beginBagging();
             }
-            // else
-            // {
-            //     delivery.currLocation = ROAD_START;
-            //     beginLineFollowing();
-            // }
+
+            //TODO, Section...: Handle all other conditions with else
+            else
+            {
+                delivery.currLocation = ROAD_ABC;
+                beginLineFollowing();
+            }
 
             break;
 
+        // TODO, Section...: Add case to handle ROAD_PICKUP
         case ROAD_PICKUP:
-            // // regardless of destination
-            // {
-            //     delivery.currLocation = ROAD_MAIN;
-            //     beginLineFollowing();
-            // }
+            // regardless of destination
+            {
+                delivery.currLocation = ROAD_MAIN;
+                beginLineFollowing();
+            }
 
             break;
 
@@ -435,28 +453,38 @@ void handleIntersection(void)
             //     idle();
             // }
 
-            break;
+        //     break;
 
+        // TODO, Section...: Handle delivery location
         case ROAD_ABC:
-        //     if(delivery.currDest == HOUSE_A)
-        //     {
-        //         turn(90, 45); // left turn
-        //         delivery.currLocation = ROAD_A;
-        //     }
-        //     else if(delivery.currDest == HOUSE_B)
-        //     {
-        //         delivery.currLocation = ROAD_B;
-        //         beginLineFollowing();
-        //     }
-        //     else if(delivery.currDest == START)
-        //     {
-        //         delivery.currLocation = ROAD_START;
-        //         beginLineFollowing();
-        //     }
+            // if(delivery.currDest == HOUSE_A)
+            // {
+            //     turn(90, 45); // left turn
+            //     delivery.currLocation = ROAD_A;
+            // }
 
-            break;
+            // TODO, Section...: Begin dropping at B
+            if(delivery.currDest == HOUSE_B)
+            {
+                delivery.currLocation = ROAD_B;
+                beginDropping();
+            }
+            // else if(delivery.currDest == HOUSE_C)
+            // {
+            //     delivery.currLocation = ROAD_C1;
+            //     beginLineFollowing();
+            // }
 
-        case ROAD_A:
+
+            // else if(delivery.currDest == START)
+            // {
+            //     delivery.currLocation = ROAD_START;
+            //     beginLineFollowing();
+            // }
+
+           break;
+
+        // case ROAD_A:
         //     if(delivery.currDest == HOUSE_A)
         //     {
         //         dropOffBag(delivery.deliveryDest);
@@ -468,7 +496,7 @@ void handleIntersection(void)
         //     }
         //     break;
 
-        case ROAD_B:
+        //  case ROAD_B:
         //     if(delivery.currDest == HOUSE_B)
         //     {
         //         dropOffBag(delivery.deliveryDest);
@@ -478,7 +506,7 @@ void handleIntersection(void)
         //         delivery.currLocation = ROAD_ABC;
         //         beginLineFollowing();
         //     }
-        //     break;
+               break;
 
         default: 
           Serial.println("Unhandled case!");

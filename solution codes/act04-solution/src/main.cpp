@@ -39,6 +39,9 @@ Servo32U4 servo;
 #define SERVO_UP 2000
 #define SERVO_DOWN 1000
 
+// TODO, Section 5.1: Add servo positions
+#define SERVO_B 1500
+
 // TODO, Section...: Define the addtional servo positions for each of the platforms
 
 // Declare rangefinder object
@@ -56,8 +59,9 @@ void setLED(bool value)
   digitalWrite(LED_PIN, value);
 }
 
-// TODO: Add bagging state
-enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING};
+// TODO, Section 5.1: Add dropping state
+//////////////////remove
+enum ROBOT_STATE {ROBOT_IDLE, ROBOT_DRIVE_FOR, ROBOT_LINE_FOLLOWING, ROBOT_BAGGING, ROBOT_DROPPING};
 ROBOT_STATE robotState = ROBOT_IDLE;
 
 //Action handleIntersection(Delivery& del);
@@ -120,8 +124,11 @@ void beginBagging(void)
 
 void beginDropping(void)
 {
-  idle();
-  // TODO, Section...: Edit function to begin dropping sequence
+  //idle();
+  // TODO, Section 5.1: Edit function to begin dropping sequence
+  /////////////////remove -- return to idle();
+  robotState = ROBOT_DROPPING;
+  baseSpeed = 5;
 }
 
 
@@ -157,6 +164,41 @@ void pickupBag(void)
   turn(180, 45); //do a u-turn
 }
 
+// TODO, Section 5.1: Write dropOffBag() function
+///////////////////remove
+void dropOffBag(void)
+{
+    Serial.print("Dropping...");
+    
+    if(delivery.deliveryDest == HOUSE_A) {} //to be filled in later
+    
+    // For B and C, we need to drive forward a bit
+    else if(delivery.deliveryDest == HOUSE_B) 
+    {  
+    Serial.println("Crawling forward.");
+    chassis.driveFor(8, 2);
+    while(!chassis.checkMotionComplete()) {delay(1);} // blocking
+    
+    // Release the bag
+    Serial.println("Dropping.");
+    servo.writeMicroseconds(SERVO_B);
+    delay(500); //blocking, but we need to make sure servo has moved
+    }
+    
+    else if(delivery.deliveryDest == HOUSE_C) {} // to fill in later
+
+    // Back up a little so the hook clears the handle
+    Serial.println("Backing up.");
+    chassis.driveFor(-5, 5);
+    while(!chassis.checkMotionComplete()) {delay(1);} // blocking    
+    // Now command a U-turn (needed for all deliveries)
+    Serial.println("U-turn");
+    turn(180, 45); 
+
+    delivery.currDest = START;
+ }
+
+
 // TODO, Section...: Add function to drop off bag
 
 // Handles a key press on the IR remote
@@ -178,6 +220,13 @@ void handleKeyPress(int16_t keyPress)
       else if(keyPress == REWIND) beginBagging(); // Rewind is used to test bagging
 
       // TODO, Section 4.1: Handle house B
+      ////////////////////// remove
+      else if(keyPress == NUM_2)
+      {
+        delivery.currDest = PICKUP;
+        delivery.deliveryDest = HOUSE_B;
+        beginLineFollowing();
+      }
 
       break;
       
@@ -282,7 +331,12 @@ void loop()
       if(checkBagEvent(8)) {pickupBag();}
       break;
 
-    // TODO, Section...: Manage dropping task
+    // TODO, Section 5.1: Manage dropping state
+    ///////////////remove
+    case ROBOT_DROPPING:
+      handleLineFollowing(baseSpeed); //crawl towards bag
+      if(checkBagEvent(8)) {dropOffBag();}
+      break;
 
 
     default:
@@ -323,11 +377,38 @@ void handleIntersection(void)
                 beginBagging();
             }
 
-            //TODO, Section...: Handle all other conditions with else
+            //TODO, Section, 4.1: Handle all other conditions with else
+            ///////////////////////remove
+            else
+            {
+              delivery.currLocation = ROAD_ABC;
+              beginLineFollowing();
+            }
 
             break;
 
         // TODO, Section 4.1: Add case to handle ROAD_PICKUP
+        /////////////////////////// remove
+        case ROAD_PICKUP:
+          delivery.currLocation = ROAD_MAIN;
+          beginLineFollowing();
+
+          break;
+
+        // TODO, Section 4.1: Add case for ROAD_ABC
+        ///////////////////////remove
+        case ROAD_ABC:
+            if(delivery.currDest == HOUSE_A) {} //filled in later
+            
+            else if(delivery.currDest == HOUSE_B)
+            {
+                delivery.currLocation = ROAD_B;
+                beginDropping();
+            }
+            
+            else if(delivery.currDest == HOUSE_C) {} //filled in later
+            
+           break;
 
         default: 
           Serial.println("Unhandled case!");

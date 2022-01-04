@@ -39,10 +39,7 @@ Servo32U4 servo;
 #define SERVO_UP 2000
 #define SERVO_DOWN 1000
 
-// TODO, Section 5.1: Add servo positions
-#define SERVO_B 1500
-
-// TODO, Section...: Define the addtional servo positions for each of the platforms
+// TODO, Section 5.1: Define the addtional servo positions for each of the platforms
 
 // Declare rangefinder object
 Rangefinder rangefinder(11, 4);
@@ -159,12 +156,12 @@ void pickupBag(void)
   turn(180, 45); //do a u-turn
 }
 
-// TODO, Section 5.1: Write dropOffBag() function
+// TODO, Section 5.1: Complete dropOffBag() function
 void dropOffBag(void)
 {
     Serial.print("Dropping...");
 
-    //TODO, Section 5.2: reset destination to start
+    // TODO, Section 5.2: reset destination to start
  }
 
 // Handles a key press on the IR remote

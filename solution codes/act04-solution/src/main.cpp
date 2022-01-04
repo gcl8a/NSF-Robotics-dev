@@ -196,6 +196,8 @@ void dropOffBag(void)
     Serial.println("U-turn");
     turn(180, 45); 
 
+    //TODO, Section 5.2: begin returning to start
+    ///////////////////remove
     delivery.currDest = START;
  }
 
@@ -405,8 +407,25 @@ void handleIntersection(void)
             }
             
             else if(delivery.currDest == HOUSE_C) {} //filled in later
+
+            // TODO, Section 5.2: Add getting back to start
+            else if(delivery.currDest == START)
+            {
+              delivery.currLocation = ROAD_MAIN;
+              idle();
+            }
             
            break;
+
+        // TODO, Section 5.2: handle ROAD_B to get back to start
+        case ROAD_B:
+            if(delivery.currDest == START)
+            {
+                delivery.currLocation = ROAD_ABC;
+                beginLineFollowing();
+            }
+
+            break;
 
         default: 
           Serial.println("Unhandled case!");

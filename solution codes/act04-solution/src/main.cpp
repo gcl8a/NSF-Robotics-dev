@@ -228,10 +228,6 @@ bool checkIntersectionEvent(int16_t darkThreshold)
   return retVal;
 }
 
-/*
- * This is the standard setup function that is called when the board is rebooted
- * It is used to initialize anything that needs to be done once.
- */
 void setup() 
 {
   // This will initialize the Serial at a baud rate of 115200 for prints

@@ -104,7 +104,7 @@ void beginLineFollowing(void)
   robotState = ROBOT_LINE_FOLLOWING;
 }
 
-// TODO: If there is a destination, begin line following
+// TODO, Section...: If there is a destination, begin line following
 void handleMotionComplete(void)
 {
   if(delivery.deliveryDest != NONE) beginLineFollowing();
@@ -125,7 +125,7 @@ void beginDropping(void)
 }
 
 
-// TODO: Add function to detect if bag is close enough
+// Function to detect if bag is close enough
 bool checkBagEvent(uint16_t threshold)
 {
   static uint16_t prevDistance = 99;
@@ -140,7 +140,7 @@ bool checkBagEvent(uint16_t threshold)
   return retVal;
 }
 
-// TODO: Add function to pick up bag
+// Function to pick up bag
 void pickupBag(void)
 {
   Serial.print("Bagging...");
@@ -178,14 +178,6 @@ void handleKeyPress(int16_t keyPress)
       else if(keyPress == REWIND) beginBagging(); // Rewind is used to test bagging
 
       // TODO, Section 4.1: Handle house B
-
-      else if(keyPress == NUM_2)
-      {
-        delivery.currDest = PICKUP;
-        delivery.deliveryDest = HOUSE_B;
-        beginLineFollowing();
-      }
-
 
       break;
       

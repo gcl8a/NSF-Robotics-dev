@@ -36,13 +36,11 @@ Chassis chassis(7.0, 1440, 14.9);
 // Due to library constraints, servo MUST be connected to pin 5
 Servo32U4 servo;
 
-#define SERVO_UP 2000
-#define SERVO_DOWN 1000
-
-// TODO, Section 5.1: Add servo positions
-#define SERVO_B 1500
+#define SERVO_UP 2300
+#define SERVO_DOWN 500
 
 // TODO, Section...: Define the addtional servo positions for each of the platforms
+#define SERVO_B 1000
 
 // Declare rangefinder object
 Rangefinder rangefinder(11, 4);
@@ -154,7 +152,7 @@ void pickupBag(void)
 
   servo.writeMicroseconds(SERVO_DOWN);
 
-  chassis.driveFor(8, 2);
+  chassis.driveFor(7, 2);
   while(!chassis.checkMotionComplete()) {delay(1);} //blocking
   Serial.println("done!");
   servo.writeMicroseconds(SERVO_UP);
@@ -176,7 +174,7 @@ void dropOffBag(void)
     else if(delivery.deliveryDest == HOUSE_B) 
     {  
       Serial.println("Crawling forward.");
-      chassis.driveFor(2, 2);
+      chassis.driveFor(6, 2);
       while(!chassis.checkMotionComplete()) {delay(1);} // blocking
       
       // Release the bag by moving the servo to the right height for the platform
@@ -189,7 +187,7 @@ void dropOffBag(void)
 
     // Back up a little so the hook clears the handle
     Serial.println("Backing up.");
-    chassis.driveFor(-5, 5);
+    chassis.driveFor(-3, 5);
     while(!chassis.checkMotionComplete()) {delay(1);} // blocking   
 
     // Now command a U-turn (needed for all deliveries)
@@ -225,6 +223,14 @@ void handleKeyPress(int16_t keyPress)
       {
         delivery.currDest = PICKUP;
         delivery.deliveryDest = HOUSE_B;
+        beginLineFollowing();
+      }
+
+      else if(keyPress == NUM_8)
+      {
+        delivery.currDest = HOUSE_B;
+        delivery.deliveryDest = HOUSE_B;
+        delivery.currLocation = ROAD_ABC;
         beginLineFollowing();
       }
 
@@ -292,6 +298,9 @@ void setup()
 
   // Attach the servo
   servo.attach();
+  servo.setMinMaxMicroseconds(SERVO_DOWN, SERVO_UP);
+  servo.writeMicroseconds(SERVO_DOWN);
+  delay(1000);
   servo.writeMicroseconds(SERVO_UP); 
 
   // TODO: Initialize rangefinder

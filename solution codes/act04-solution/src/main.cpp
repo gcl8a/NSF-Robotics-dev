@@ -175,19 +175,10 @@ void handleKeyPress(int16_t keyPress)
       else if(keyPress == LEFT_ARROW) turn(90, 45);
       else if(keyPress == RIGHT_ARROW) turn(-90, 45);
       else if(keyPress == SETUP_BTN) beginLineFollowing();
+      else if(keyPress == REWIND) beginBagging(); // Rewind is used to test bagging
 
-      // TODO: Handle house B
-      else if(keyPress == NUM_2)
-      {
-        delivery.deliveryDest = HOUSE_B;
-        delivery.currDest = PICKUP;
-        beginLineFollowing();
-      }
+      // TODO, Section...: Handle house B
 
-      // TODO: Handle house C
-
-      // Handle rewind button -> initiate bag pickup
-      else if(keyPress == REWIND) beginBagging();
       break;
       
     case ROBOT_LINE_FOLLOWING:

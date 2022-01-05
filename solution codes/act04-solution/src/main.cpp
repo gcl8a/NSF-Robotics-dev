@@ -78,6 +78,9 @@ void idle(void)
   delivery.deliveryDest = NONE;
   delivery.currDest = NONE;
 
+  // raise lifter
+  servo.writeMicroseconds(SERVO_UP);
+
   //set state to idle
   robotState = ROBOT_IDLE;
 }
@@ -118,6 +121,7 @@ void beginBagging(void)
 {
   robotState = ROBOT_BAGGING;
   baseSpeed = 5;
+  servo.writeMicroseconds(SERVO_DOWN);
 }
 
 void beginDropping(void)
@@ -138,6 +142,7 @@ bool checkBagEvent(uint16_t threshold)
   bool retVal = false;
 
   uint16_t currDistance = rangefinder.getDistance();
+  Serial.println(currDistance);
 
   if(prevDistance > threshold && currDistance <= threshold) retVal = true;
   prevDistance = currDistance;
@@ -150,12 +155,11 @@ void pickupBag(void)
 {
   Serial.print("Bagging...");
 
-  servo.writeMicroseconds(SERVO_DOWN);
-
-  chassis.driveFor(7, 2);
+  chassis.driveFor(3, 2);
   while(!chassis.checkMotionComplete()) {delay(1);} //blocking
   Serial.println("done!");
   servo.writeMicroseconds(SERVO_UP);
+  delay(100); // we don't like delays, but we need to make sure the servo has lifted
 
   delivery.currDest = delivery.deliveryDest;
 
@@ -174,13 +178,13 @@ void dropOffBag(void)
     else if(delivery.deliveryDest == HOUSE_B) 
     {  
       Serial.println("Crawling forward.");
-      chassis.driveFor(6, 2);
+      chassis.driveFor(3, 2);
       while(!chassis.checkMotionComplete()) {delay(1);} // blocking
       
       // Release the bag by moving the servo to the right height for the platform
       Serial.println("Dropping.");
       servo.writeMicroseconds(SERVO_B);
-      delay(500); //blocking, but we need to make sure servo has moved
+      delay(200); //blocking, but we need to make sure servo has moved
     }
     
     else if(delivery.deliveryDest == HOUSE_C) {} // to fill in later
@@ -299,9 +303,6 @@ void setup()
   // Attach the servo
   servo.attach();
   servo.setMinMaxMicroseconds(SERVO_DOWN, SERVO_UP);
-  servo.writeMicroseconds(SERVO_DOWN);
-  delay(1000);
-  servo.writeMicroseconds(SERVO_UP); 
 
   // TODO: Initialize rangefinder
   rangefinder.init();
@@ -337,14 +338,14 @@ void loop()
     // Handle bagging state
     case ROBOT_BAGGING:
       handleLineFollowing(baseSpeed); //crawl towards bag
-      if(checkBagEvent(8)) {pickupBag();}
+      if(checkBagEvent(5)) {pickupBag();}
       break;
 
     // TODO, Section 5.1: Manage dropping state
     ///////////////remove
     case ROBOT_DROPPING:
       handleLineFollowing(baseSpeed); //crawl towards bag
-      if(checkBagEvent(8)) {dropOffBag();}
+      if(checkBagEvent(5)) {dropOffBag();}
       break;
 
 

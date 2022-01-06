@@ -386,9 +386,7 @@ void handleIntersection(void)
                 delivery.currLocation = ROAD_PICKUP;
                 beginBagging();
             }
-
-            //TODO, Section, 4.1: Handle all other conditions with else
-            ///////////////////////remove
+            
             else
             {
               delivery.currLocation = ROAD_ABC;
@@ -397,16 +395,12 @@ void handleIntersection(void)
 
             break;
 
-        // TODO, Section 4.1: Add case to handle ROAD_PICKUP
-        /////////////////////////// remove
         case ROAD_PICKUP:
           delivery.currLocation = ROAD_MAIN;
           beginLineFollowing();
 
           break;
 
-        // TODO, Section 4.1: Add case for ROAD_ABC
-        ///////////////////////remove
         case ROAD_ABC:
             if(delivery.currDest == HOUSE_A) {} //filled in later
             
@@ -418,7 +412,6 @@ void handleIntersection(void)
             
             else if(delivery.currDest == HOUSE_C) {} //filled in later
 
-            // TODO, Section 5.2: Add getting back to start
             else if(delivery.currDest == START)
             {
               delivery.currLocation = ROAD_MAIN;
@@ -427,7 +420,6 @@ void handleIntersection(void)
             
            break;
 
-        // TODO, Section 5.2: handle ROAD_B to get back to start
         case ROAD_B:
             if(delivery.currDest == START)
             {

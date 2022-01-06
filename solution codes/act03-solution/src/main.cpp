@@ -28,6 +28,8 @@ Chassis chassis(7.0, 1440, 14.9);
 // TODO: Declare a servo object
 // Due to library constraints, servo MUST be connected to pin 5
 Servo32U4 servo;
+#define SERVO_DOWN 500
+#define SERVO_UP 2300
 
 // TODO: Declare rangefinder object
 Rangefinder rangefinder(11, 4);
@@ -96,6 +98,7 @@ void beginBagging(void)
 {
   robotState = ROBOT_BAGGING;
   speed = 5;
+  servo.writeMicroseconds(SERVO_DOWN);
 }
 
 // TODO: Add function to detect if bag is close enough
@@ -119,12 +122,10 @@ bool pickupBag(void)
 {
   Serial.print("Bagging...");
 
-  servo.writeMicroseconds(1000);
-
-  //chassis.driveFor(8, 2);
-  //while(!chassis.checkMotionComplete()) {delay(1);} //blocking
+  // chassis.driveFor(8, 2);
+  // while(!chassis.checkMotionComplete()) {delay(1);} //blocking
   Serial.println("done!");
-  servo.writeMicroseconds(2000);
+  servo.writeMicroseconds(SERVO_UP);
 
   idle();
 
@@ -230,6 +231,7 @@ void setup()
 
   // Setup the servo 
   servo.attach();
+  servo.setMinMaxMicroseconds(SERVO_DOWN, SERVO_UP);
 
   // Initialize rangefinder
   rangefinder.init();
@@ -265,7 +267,7 @@ void loop()
     // TODO: Handle bagging state
     case ROBOT_BAGGING:
       handleLineFollowing(speed); //crawl towards bag
-      if(checkBagEvent(1)) {pickupBag();}
+      if(checkBagEvent(3)) {pickupBag();}
       break;
 
     default:
